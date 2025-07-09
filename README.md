@@ -14,7 +14,7 @@ This project is an Ecommerce API designed to provide backend services for an onl
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/yourusername/ecommerce-api.git
+    git clone https://github.com/mahmoud142/ecommerce-api.git
     cd ecommerce-api
     ```
 
@@ -31,9 +31,6 @@ This project is an Ecommerce API designed to provide backend services for an onl
     npm start
     ```
 
-## API Documentation
-
-See the [API Docs](docs/API.md) for detailed endpoint information.
 
 ## Contributing
 
