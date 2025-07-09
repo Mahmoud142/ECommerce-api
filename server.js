@@ -7,12 +7,11 @@ require('dotenv').config();
 
 // =========Database Connection==========
 const connectDB = require('./config/db');
-connectDB();
 
 
 // =========Global Route======================
 app.get('/api', (req, res) => {
-    res.send('Hello World!');
+    res.send('API is Working Correctly');
 });
 
 
@@ -31,4 +30,5 @@ app.use('/api/users', userRoutes);
 // =========starting Server===========
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  connectDB();
 });
