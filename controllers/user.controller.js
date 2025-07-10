@@ -22,7 +22,6 @@ const updateUserProfile = async (req, res) => {
         // Update fields if provided
         user.name = req.body.name || user.name;
         user.email = req.body.email || user.email;
-
         if (req.body.password) {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(req.body.password, salt);

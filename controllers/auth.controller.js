@@ -4,7 +4,7 @@ const generateToken = require('../utils/generateToken');
 
 // Register User
 const registerUser = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password,isAdmin } = req.body;
     try {
         if(!name || !email || !password) {
             return res.status(400).json({ message: 'Please fill all fields' });
@@ -18,7 +18,8 @@ const registerUser = async (req, res) => {
         const user = await User.create({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            isAdmin: isAdmin || false
         });
         return res.status(201).json({
             _id: user._id,

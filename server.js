@@ -26,6 +26,9 @@ const userRoutes = require('./routes/user.route');
 app.use('/api/users', userRoutes);
 
 
+//=========product Routes===========
+const productRoutes = require('./routes/product.route');
+app.use('/api/products', productRoutes);
 
 // =========starting Server===========
 app.listen(PORT, () => {
