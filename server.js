@@ -30,6 +30,11 @@ app.use('/api/users', userRoutes);
 const productRoutes = require('./routes/product.route');
 app.use('/api/products', productRoutes);
 
+//=========order Routes===========
+const orderRoutes = require('./routes/order.route');
+app.use('/api/orders', orderRoutes);
+
+ 
 // =========starting Server===========
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
