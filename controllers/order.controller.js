@@ -72,8 +72,34 @@ const getOrderById = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error from orders" });
     }
 }
+
+const makeOrderAsPaid = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        if(req.user._id.toString() !== order.user.toString() && !req.user.isAdmin) {
+            return res.status(403).json({ message: "You do not have permission to update this order" });
+        }
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        order.paymentResult = {
+            id: req.body.id || 'manual',
+            status: req.body.status || 'completed',
+            update_time: req.body.update_time || new Date().toISOString(),
+            email_address: req.body.email_address || req.user.email,
+        };
+        const updatedOrder = await order.save();
+        res.status(200).json({ message: "Order payment status updated", order: updatedOrder });
+    } catch (error) {
+        console.error("Error updating order payment status:", error);
+        res.status(500).json({ message: "Internal Server Error from orders" });
+    }
+}
 module.exports = {
     createOrder,
     getMyOrders,
-    getOrderById
+    getOrderById,
+    makeOrderAsPaid
 }
