@@ -26,7 +26,7 @@ const admin = (req, res, next) => {
     if (req.user && req.user.isAdmin) {
         next();
     } else {
-        console.log(req.user);
+        console.error("Access denied: Admins only");
         res.status(401).json({ message: 'Access denied: Admins only' });
     }
 }

@@ -97,9 +97,31 @@ const makeOrderAsPaid = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error from orders" });
     }
 }
+
+const markOrderAsDelivered = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        if (order.isDelivered) {
+            return res.status(400).json({ message: "Order is already delivered" });
+        }
+
+        order.isDelivered = true;
+        order.deliveredAt = Date.now();
+        const updatedOrder = await order.save();
+        res.status(200).json({ message: "Order marked as delivered", order: updatedOrder });
+    } catch (error) {
+        console.error("internal server error from mark order as deliverd", error);
+        res.status(500).json({ message: "Internal Server Error from orders" });
+    }
+}
 module.exports = {
     createOrder,
     getMyOrders,
     getOrderById,
-    makeOrderAsPaid
+    makeOrderAsPaid,
+    markOrderAsDelivered,
 }
