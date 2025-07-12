@@ -45,7 +45,17 @@ const createOrder = async (req, res) => {
     }
 }
 
+const getMyOrders = async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+        res.status(200).json({ orders: orders });
+    } catch (error) {
+        console.error("Error fetching user orders:", error);
+        res.status(500).json({ message: "Internal Server Error from orders" });
+    }
+}
 
 module.exports = {
-    createOrder
+    createOrder,
+    getMyOrders
 }
