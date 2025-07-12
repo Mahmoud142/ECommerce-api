@@ -55,7 +55,25 @@ const getMyOrders = async (req, res) => {
     }
 }
 
+const getOrderById = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id).populate('user', 'name email');
+        console.log("Order fetched:", order);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        if (order.user._id.toString() === req.user._id.toString() || req.user.isAdmin) {
+            return res.status(200).json({ order: order });
+        } else {
+            return res.status(403).json({ message: "You do not have permission to view this order" });
+        }
+    } catch (error) {
+        console.error("Error fetching order by ID:", error);
+        res.status(500).json({ message: "Internal Server Error from orders" });
+    }
+}
 module.exports = {
     createOrder,
-    getMyOrders
+    getMyOrders,
+    getOrderById
 }
