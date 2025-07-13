@@ -6,12 +6,14 @@ const {
     getMyOrders,
     getOrderById,
     makeOrderAsPaid,
-    markOrderAsDelivered
+    markOrderAsDelivered,
+    getAllOrders
 } = require('../controllers/order.controller');
 
 
 router.post('/', protect, createOrder);
 router.get('/myorders', protect, getMyOrders);
+router.get('/', protect, admin, getAllOrders);
 router.get('/:id', protect, getOrderById);
 router.put('/:id/pay', protect, makeOrderAsPaid);
 router.put('/:id/deliver', protect, admin, markOrderAsDelivered); 
