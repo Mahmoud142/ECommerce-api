@@ -87,5 +87,13 @@ const loginUser = async (req, res) => {
     }
 }
 
+const logoutUser = (req, res) => {
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
+    res.status(200).json({ message: 'Logged out successfully' });
+}
 
-module.exports = { registerUser, loginUser, refreshAccessToken };
+module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser };
