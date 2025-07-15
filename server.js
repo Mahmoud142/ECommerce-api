@@ -6,17 +6,10 @@ const PORT = process.env.PORT || 3000;
 require('dotenv').config();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const multer = require('multer');
-// To handle form-data (multipart/form-data), use multer or a similar middleware
-const upload = multer();
 
-// Use multer for parsing multipart/form-data
-app.use(upload.none());
+
 // =========Database Connection==========
 const connectDB = require('./config/db');
-
-
-
 
 // =========Global Route======================
 app.get('/api', (req, res) => {
@@ -44,10 +37,11 @@ const orderRoutes = require('./routes/order.route');
 app.use('/api/orders', orderRoutes);
 
 //=========upload Routes===========
-app.use('/upload', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Serve static files from the 'uploads' directory
 const uploadRoutes = require('./routes/upload.route');
-app.use('/api/upload', uploadRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 
 // =========starting Server===========
