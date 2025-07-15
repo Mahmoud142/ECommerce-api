@@ -1,5 +1,5 @@
 const Order = require('../models/order.model');
-
+const Product = require('../models/product.model');
 const createOrder = async (req, res) => {
     try {
         const {
@@ -10,22 +10,27 @@ const createOrder = async (req, res) => {
             taxPrice,
             shippingPrice,
             totalPrice } = req.body;
-        // Validate user authentication
-        if (!req.user || !req.user._id) {
-            return res.status(401).json({ message: "Unauthorized: User not authenticated" });
+        
+        if (!orderItems || orderItems.length === 0) {
+            return res.status(400).json({ message: "No order items provided" });
         }
-
-        // Validate required fields
-        if (
-            !Array.isArray(orderItems) || orderItems.length === 0 ||
-            typeof shippingAddress !== 'object' || !shippingAddress ||
-            typeof paymentMethod !== 'string' || !paymentMethod.trim() ||
-            typeof itemPrice !== 'number' || itemPrice < 0 ||
-            typeof taxPrice !== 'number' || taxPrice < 0 ||
-            typeof shippingPrice !== 'number' || shippingPrice < 0 ||
-            typeof totalPrice !== 'number' || totalPrice < 0
-        ) {
-            return res.status(400).json({ message: "Missing or invalid required order fields" });
+        if (!shippingAddress || !shippingAddress.address || !shippingAddress.city || !shippingAddress.postalCode || !shippingAddress.country) {
+            return res.status(400).json({ message: "Invalid shipping address" });
+        }
+        if(!paymentMethod) {
+            return res.status(400).json({ message: "Payment method is required" });
+        }
+        if (itemPrice < 0 || taxPrice < 0 || shippingPrice < 0 || totalPrice < 0) {
+            return res.status(400).json({ message: "Prices cannot be negative" });
+        }
+        for (let item of orderItems) {
+            const product = await Product.findById(item.product);
+            if (!product) {
+                return res.status(400).json({ message: `Product with ID ${item.product} not found` });
+            }
+            if (item.quantity > product.countInStock) {
+                return res.status(400).json({ message: `not enough stock for product ${product.name}` });
+            }
         }
         const order = new Order({
             user: req.user._id,
@@ -38,7 +43,14 @@ const createOrder = async (req, res) => {
             totalPrice
         });
         const createdOrder = await order.save();
-        res.status(201).json(createdOrder);
+        for (let item of orderItems) {
+            const product = await Product.findById(item.product);
+            if (product) {
+                product.countInStock -= item.quantity;
+                await product.save();
+            }
+        }
+        res.status(201).json({ message: "Order created successfully", order: createdOrder });
     } catch (error) {
         console.error("Error creating order:", error);
         res.status(500).json({ message: "Internal Server Error from orders" });
