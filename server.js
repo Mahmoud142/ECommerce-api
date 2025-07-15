@@ -2,8 +2,9 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 require('dotenv').config();
+// const cookieParser = require('cookie-parser');
+// app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -38,8 +39,6 @@ app.use('/api/orders', orderRoutes);
 
 //=========upload Routes===========
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve static files from the 'uploads' directory
 const uploadRoutes = require('./routes/upload.route');
 app.use('/api/uploads', uploadRoutes);
 
