@@ -4,12 +4,12 @@ const bcrypt = require('bcrypt');
 const getUserProfile = async (req, res) => {
     try {
         if (!req.user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ status: false, message: 'User not found' });
         }
-        res.status(200).json({ user: req.user });
+        res.status(200).json({ status: true, data: { user: req.user } });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error from user profile' });
+        res.status(500).json({ status: false, message: 'Server error from user profile' });
     }
 }
 
@@ -17,7 +17,7 @@ const updateUserProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ status: false, message: 'User not found' });
         }
         // Update fields if provided
         user.name = req.body.name || user.name;
@@ -29,17 +29,20 @@ const updateUserProfile = async (req, res) => {
 
         const updatedUser = await user.save();
         if (!updatedUser) {
-            return res.status(400).json({ message: 'Failed to update user profile' });
+            return res.status(400).json({ status: false, message: 'Failed to update user profile' });
         }
         res.status(200).json({
-            _id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            isAdmin: updatedUser.isAdmin,
+            status: true,
+            data: {
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                isAdmin: updatedUser.isAdmin
+            },
         });
     } catch (err) {
         console.error('Update profile error:', err);
-        res.status(500).json({ message: 'Server error From updateUserProfile' });
+        res.status(500).json({ status: false, message: 'Server error From updateUserProfile' });
     }
 };
 
