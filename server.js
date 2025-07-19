@@ -2,9 +2,14 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
+// const bodyParser = require('body-parser');
 require('dotenv').config();
-// const cookieParser = require('cookie-parser');
-// app.use(cookieParser());
+
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+// app.use('api/webhook',express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -41,7 +46,6 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 const uploadRoutes = require('./routes/upload.route');
 app.use('/api/uploads', uploadRoutes);
-
 
 // =========starting Server===========
 app.listen(PORT, () => {
