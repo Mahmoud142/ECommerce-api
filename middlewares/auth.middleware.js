@@ -14,12 +14,12 @@ const protect = async (req, res, next) => {
             next();
         } catch (error) {
             console.log("invalid token",error);
-            res.status(401).json({ message: 'Not authorized, token failed' });
+            res.status(401).json({status: false, message: 'Not authorized, token failed' });
         }
     }
     else {
-        res.status(401).json({ message: 'Not authorized, no token' });
-    }   
+        res.status(401).json({ status: false, message: 'Not authorized, no token' });
+    }
 }
 
 const admin = (req, res, next) => {
@@ -27,7 +27,7 @@ const admin = (req, res, next) => {
         next();
     } else {
         console.error("Access denied: Admins only");
-        res.status(401).json({ message: 'Access denied: Admins only' });
+        res.status(401).json({status: false, message: 'Access denied: Admins only' });
     }
 }
 module.exports = { protect, admin };
