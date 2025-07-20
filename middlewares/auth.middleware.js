@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
-
+const { SUCCESS, FAIL } = require('../utils/httpStatusText');
 
 const protect = async (req, res, next) => {
     let token;
@@ -14,11 +14,11 @@ const protect = async (req, res, next) => {
             next();
         } catch (error) {
             console.log("invalid token",error);
-            res.status(401).json({status: false, message: 'Not authorized, token failed' });
+            res.status(401).json({ status: FAIL, message: 'Not authorized, token failed' });
         }
     }
     else {
-        res.status(401).json({ status: false, message: 'Not authorized, no token' });
+        res.status(401).json({ status: FAIL, message: 'Not authorized, no token' });
     }
 }
 
@@ -27,7 +27,7 @@ const admin = (req, res, next) => {
         next();
     } else {
         console.error("Access denied: Admins only");
-        res.status(401).json({status: false, message: 'Access denied: Admins only' });
+        res.status(401).json({ status: FAIL, message: 'Access denied: Admins only' });
     }
 }
 module.exports = { protect, admin };
