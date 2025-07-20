@@ -1,4 +1,5 @@
 const Product = require('../models/product.model');
+const { SUCCESS, FAIL } = require('../utils/httpStatusText');
 
 const createProduct = async (req, res) => {
     try {
@@ -6,7 +7,7 @@ const createProduct = async (req, res) => {
             name, description, price, category, image, brand, countInStock } = req.body;
             if (!name || !description || !price || !category || !image || !countInStock) {
                 return res.status(400).json({
-                    status: false,
+                    status: FAIL,
                     message: 'Missing required fields'
                 });
             }
@@ -23,14 +24,14 @@ const createProduct = async (req, res) => {
 
         const createdProduct = await product.save();
         res.status(201).json({
-            status: true,
+            status: SUCCESS,
             message: 'Product created successfully',
             data: { product: createdProduct }
         });
     } catch (error) {
         console.error('Error creating product:', error);
         res.status(500).json({
-            status: false,
+            status: FAIL,
             message: error.message,
         });
     }
@@ -39,9 +40,9 @@ const createProduct = async (req, res) => {
 const getAllProducts = async (req, res) => {
     try {
         const products = await Product.find({});
-        res.status(200).json({ status: true, message: 'Products fetched successfully', data: { products: products } });
+        res.status(200).json({ status: SUCCESS, message: 'Products fetched successfully', data: { products: products } });
     } catch (error) {
-        res.status(500).json({ status: false, message: error.message  });
+        res.status(500).json({ status: FAIL, message: error.message });
     }
 }
 
@@ -49,11 +50,11 @@ const getProductById = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
         if (!product) {
-            return res.status(404).json({ status: false, message: 'Product not found' });
+            return res.status(404).json({ status: FAIL, message: 'Product not found' });
         }
-        res.status(200).json({ status: true, message: 'Product fetched successfully', data: { product: product } });
+        res.status(200).json({ status: SUCCESS, message: 'Product fetched successfully', data: { product: product } });
     } catch (error) {
-        res.status(500).json({ status: false, message: error.message });
+        res.status(500).json({ status: FAIL, message: error.message });
     }
 }
 
@@ -61,8 +62,9 @@ const updateProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
         if (!product) {
-            return res.status(404).json({ status: false, message: 'Product not found' });
+            return res.status(404).json({ status: FAIL, message: 'Product not found' });
         }
+
         const {name , description, price, category, image, brand, countInStock } = req.body;
         product.name = name || product.name;
         product.description = description || product.description;
@@ -71,11 +73,14 @@ const updateProduct = async (req, res) => {
         product.image = image || product.image;
         product.brand = brand || product.brand;
         product.countInStock = countInStock || product.countInStock;
+        
+
+
         const updatedProduct = await product.save();
-        res.status(200).json({ status: true, message: 'Product updated successfully', data: { product: updatedProduct } });
+        res.status(200).json({ status: SUCCESS, message: 'Product updated successfully', data: { product: updatedProduct } });
     } catch (error) {
         console.error('Error updating product:', error);
-        res.status(500).json({ status: false, message: error.message  });
+        res.status(500).json({ status: FAIL, message: error.message });
     }
 }
 
@@ -83,11 +88,11 @@ const deleteProduct = async (req, res) => {
     try {
         const product = await Product.findByIdAndDelete(req.params.id);
         if(!product) {
-            return res.status(404).json({ status: false, message: 'Product not found' });
+            return res.status(404).json({ status: FAIL, message: 'Product not found' });
         }
-        res.status(200).json({ status: true, message: 'Product deleted successfully' });
+        res.status(200).json({ status: SUCCESS, message: 'Product deleted successfully' });
     } catch (error) {
-        res.status(500).json({ status: false, message: error.message });
+        res.status(500).json({ status: FAIL, message: error.message });
     }
 }
 
@@ -99,7 +104,7 @@ const createProductReview = async (req, res) => {
             const alreadyReviewed = product.reviews.find(
                 (review) => review.user.toString() === req.user._id.toString());
             if (alreadyReviewed) {
-                return res.status(400).json({ status: false, message: 'Product already reviewed' });
+                return res.status(400).json({ status: FAIL, message: 'Product already reviewed' });
             }
             const review = {
                 name: req.user.name,
@@ -112,16 +117,16 @@ const createProductReview = async (req, res) => {
             product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
             await product.save();
             res.status(201).json({
-                status: true,
+                status: SUCCESS,
                 message: 'Review added successfully',
                 data: { review: review }
             });
         } else {
-            res.status(404).json({ status: false, message: 'Product not found' });
+            res.status(404).json({ status: FAIL, message: 'Product not found' });
         }
     } catch (error) {
         console.error("error from reviews", error.message);
-        res.status(500).json({ status: false, message: error.message });
+        res.status(500).json({ status: FAIL, message: error.message });
     }
 }
 

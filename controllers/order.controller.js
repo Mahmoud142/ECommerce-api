@@ -1,6 +1,6 @@
 const Order = require('../models/order.model');
 const Product = require('../models/product.model');
-const { SUCCESS, FAIL, ERROR } = require('../utils/httpStatusText');
+const { SUCCESS, FAIL} = require('../utils/httpStatusText');
 
 const createOrder = async (req, res) => {
     try {

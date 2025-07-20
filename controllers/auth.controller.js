@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
 const { generateToken, generateRefreshToken } = require('../utils/generateToken');
-const { SUCCESS, FAIL, ERROR } = require('../utils/httpStatusText');
+const { SUCCESS, FAIL} = require('../utils/httpStatusText');
 
 
 const refreshAccessToken = async (req, res) => {
@@ -15,7 +15,7 @@ const refreshAccessToken = async (req, res) => {
         return res.status(200).json({ status: SUCCESS, token: accessToken });
     } catch (error) {
         console.error('Invalid refresh token:', error.message);
-        res.status(403).json({ status: ERROR, message: 'Invalid refresh token' });
+        res.status(403).json({ status: FAIL, message: 'Invalid refresh token' });
     }
 
 }
