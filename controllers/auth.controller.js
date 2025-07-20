@@ -1,19 +1,21 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
 const { generateToken, generateRefreshToken } = require('../utils/generateToken');
+const { SUCCESS, FAIL, ERROR } = require('../utils/httpStatusText');
+
 
 const refreshAccessToken = async (req, res) => {
     const token = req.cookies.refreshToken;
     if (!token) {
-        return res.status(401).json({ status: false, message: 'No refresh token provided' });
+        return res.status(401).json({ status: FAIL, message: 'No refresh token provided' });
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
         const accessToken = generateToken(decoded.id);
-        return res.status(200).json({ status: true, token: accessToken });
+        return res.status(200).json({ status: SUCCESS, token: accessToken });
     } catch (error) {
         console.error('Invalid refresh token:', error.message);
-        res.status(403).json({ status: false, message: 'Invalid refresh token' });
+        res.status(403).json({ status: ERROR, message: 'Invalid refresh token' });
     }
 
 }
@@ -23,21 +25,21 @@ const registerUser = async (req, res) => {
         const { name, email, password, isAdmin } = req.body;
         
         if (!name) {
-            return res.status(400).json({ success: false, message: 'Name is required' });
+            return res.status(400).json({ status: FAIL, message: 'Name is required' });
         }
         if (!email) {
-            return res.status(400).json({ success: false, message: 'Email is required' });
+            return res.status(400).json({ status: FAIL, message: 'Email is required' });
         }
         if (!password) {
-            return res.status(400).json({ success: false, message: 'Password is required' });
+            return res.status(400).json({ status: FAIL, message: 'Password is required' });
         }
         if (password.length < 6) {
-            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long' });
+            return res.status(400).json({ status: FAIL, message: 'Password must be at least 6 characters long' });
         }
 
         const userExists = await User.findOne({ email });
         if (userExists) {
-            return res.status(400).json({ success: false, message: 'User already exists' });
+            return res.status(400).json({ status: FAIL, message: 'User already exists' });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -50,7 +52,7 @@ const registerUser = async (req, res) => {
             isAdmin: isAdmin || false
         });
         return res.status(201).json({
-            success: true,
+            status: SUCCESS,
             message: 'User registered successfully',
             data: {
                 _id: user._id,
@@ -62,7 +64,7 @@ const registerUser = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ status: false, message: 'Server error from user register' });
+        return res.status(500).json({ status: FAIL, message: 'Server error from user register' });
     }
 }
 
@@ -71,22 +73,22 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         if (!email || !password) {
-            return res.status(400).json({ message: "Email and Password are required" });
+            return res.status(400).json({ status: FAIL, message: "Email and Password are required" });
         }
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: "Invalid email or password" });
+            return res.status(400).json({ status: FAIL, message: "Invalid email or password" });
         }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
-            return res.status(400).json({ message: "Invalid email or password" });
+            return res.status(400).json({ status: FAIL, message: "Invalid email or password" });
         }
         const accessToken = generateToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
         if(!refreshToken||!accessToken) {
-            return res.status(500).json({ success: false, message: "Failed to generate tokens" });
+            return res.status(500).json({ status: FAIL, message: "Failed to generate tokens" });
         }
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -95,7 +97,7 @@ const loginUser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         })
         return res.status(200).json({
-            success: true,
+            status: SUCCESS,
             message: 'User logged in successfully',
             data: {
                 _id: user._id,
@@ -108,7 +110,7 @@ const loginUser = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ success: false, message: 'Server error from user login' });
+        return res.status(500).json({ status: FAIL, message: 'Server error from user login' });
     }
 }
 
@@ -119,10 +121,10 @@ const logoutUser = (req, res) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict'
         });
-        res.status(200).json({ success: true, message: 'Logged out successfully' });
+        res.status(200).json({ status: SUCCESS, message: 'Logged out successfully' });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ success: false, message: 'Server error from user logout' });
+        return res.status(500).json({ status: FAIL, message: 'Server error from user logout' });
     }
 }
 
