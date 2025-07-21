@@ -57,7 +57,7 @@ const createOrder = asyncWrapper(async (req, res, next) => {
     res.status(201).json({ status: SUCCESS, message: "Order created successfully", data: { order: createdOrder } });
 });
 
-const getMyOrders = asyncWrapper(async (req, res) => {
+const getMyOrders = asyncWrapper(async (req, res, next) => {
     const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.status(200).json({ status: SUCCESS, message: "Orders fetched successfully", data: { orders: orders } });
 });
@@ -77,7 +77,7 @@ const getOrderById = asyncWrapper(async (req, res, next) => {
 
 });
 
-const makeOrderAsPaid = asyncWrapper(async (req, res) => {
+const makeOrderAsPaid = asyncWrapper(async (req, res, next) => {
 
     const order = await Order.findById(req.params.id);
     if (!order) {
@@ -112,7 +112,7 @@ const makeOrderAsPaid = asyncWrapper(async (req, res) => {
     });
 });
 
-const markOrderAsDelivered = asyncWrapper(async (req, res) => {
+const markOrderAsDelivered = asyncWrapper(async (req, res, next) => {
     const order = await Order.findById(req.params.id);
     if (!order) {
         const err = AppError.create('Order not found', 404, FAIL);
@@ -129,7 +129,7 @@ const markOrderAsDelivered = asyncWrapper(async (req, res) => {
     res.status(200).json({ status: SUCCESS, message: "Order marked as delivered", data: { order: updatedOrder } });
 });
 
-const getAllOrders = asyncWrapper(async (req, res) => {
+const getAllOrders = asyncWrapper(async (req, res, next) => {
     const orders = await Order.find({}).populate('user', 'name email').sort({ createdAt: -1 });
     res.status(200).json({ status: SUCCESS, message: "Orders fetched successfully", data: { orders: orders } });
 });
