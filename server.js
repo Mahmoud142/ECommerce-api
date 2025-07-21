@@ -46,6 +46,26 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 const uploadRoutes = require('./routes/upload.route');
 app.use('/api/uploads', uploadRoutes);
+//=======Global Error Handler===========
+const { SUCCESS, FAIL, ERROR } = require('./utils/httpStatusText');
+
+// Handle 404 for undefined routes
+app.use((req, res) => {
+  return res.status(404).json({ status: ERROR, message: `Route ${req.originalUrl} not found` });
+});
+
+// Global Error middleware
+app.use((err, req, res, next) => {
+  return res.status(err.statusCode || 500).json({
+    status: err.statusText || ERROR,
+    message: err.message || 'Internal Server Error',
+    code: err.statusCode || 500,
+    data: null
+  });
+})
+
+
+
 
 // =========starting Server===========
 app.listen(PORT, () => {

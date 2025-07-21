@@ -1,8 +1,9 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
 const { generateToken, generateRefreshToken } = require('../utils/generateToken');
-const { SUCCESS, FAIL} = require('../utils/httpStatusText');
-
+const { SUCCESS, FAIL } = require('../utils/httpStatusText');
+const AppError = require('../utils/appError');
+const asyncWrapper = require('../middlewares/asyncWrapper');
 
 const refreshAccessToken = async (req, res) => {
     const token = req.cookies.refreshToken;
@@ -20,47 +21,39 @@ const refreshAccessToken = async (req, res) => {
 
 }
 
-const registerUser = async (req, res) => {
-    try {
-        const { name, email, password, isAdmin } = req.body;
-        if(!name || !email || !password) {
-            return res.status(400).json({ status: FAIL, message: 'All fields are required' });
-        }
-        
-        if (password.length < 6) {
-            return res.status(400).json({ status: FAIL, message: 'Password must be at least 6 characters long' });
-        }
+const registerUser = async (req, res,next) => {
 
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(400).json({ status: FAIL, message: 'Registration failed' });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const user = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            isAdmin: isAdmin || false
-        });
-        return res.status(201).json({
-            status: SUCCESS,
-            message: 'User registered successfully',
-            data: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                token: generateToken(user._id),
-            }
-        });
+    const { name, email, password, isAdmin } = req.body;
+    if (!name || !email || !password) {
+        const err = AppError.create('All fields are required', 400, FAIL);
+        return next(err);
     }
-    catch (error) {
-        console.error(error);
-        return res.status(500).json({ status: FAIL, message: 'An unexpected error occurred during registration' });
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        const err = AppError.create('User already exists', 400, FAIL);
+        return next(err);
     }
-}
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        isAdmin: isAdmin || false
+    });
+    return res.status(201).json({
+        status: SUCCESS,
+        message: 'User registered successfully',
+        data: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id),
+        }
+    });
+};
 
 
 const loginUser = async (req, res) => {
@@ -81,7 +74,7 @@ const loginUser = async (req, res) => {
         }
         const accessToken = generateToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
-        if(!refreshToken||!accessToken) {
+        if (!refreshToken || !accessToken) {
             return res.status(500).json({ status: FAIL, message: "Failed to generate tokens" });
         }
         res.cookie('refreshToken', refreshToken, {
