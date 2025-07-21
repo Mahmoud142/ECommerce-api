@@ -21,7 +21,7 @@ const refreshAccessToken = async (req, res) => {
 
 }
 
-const registerUser = async (req, res,next) => {
+const registerUser = asyncWrapper(async (req, res, next) => {
 
     const { name, email, password, isAdmin } = req.body;
     if (!name || !email || !password) {
@@ -53,66 +53,63 @@ const registerUser = async (req, res,next) => {
             token: generateToken(user._id),
         }
     });
-};
+});
 
 
-const loginUser = async (req, res) => {
+const loginUser = asyncWrapper(async (req, res, next) => {
     const { email, password } = req.body;
-    try {
-        if (!email || !password) {
-            return res.status(400).json({ status: FAIL, message: "Invalid credentials" });
-        }
 
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ status: FAIL, message: "Invalid credentials" });
-        }
+    if (!email || !password) {
+        const err = AppError.create('Invalid email or password', 400, FAIL);
+        return next(err);
+    }
 
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-        if (!isPasswordMatch) {
-            return res.status(400).json({ status: FAIL, message: "Invalid credentials" });
-        }
-        const accessToken = generateToken(user._id);
-        const refreshToken = generateRefreshToken(user._id);
-        if (!refreshToken || !accessToken) {
-            return res.status(500).json({ status: FAIL, message: "Failed to generate tokens" });
-        }
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        })
-        return res.status(200).json({
-            status: SUCCESS,
-            message: 'User logged in successfully',
-            data: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                isAdmin: user.isAdmin,
-                accessToken: accessToken
-            }
-        });
+    const user = await User.findOne({ email });
+    if (!user) {
+        const err = AppError.create('Invalid credentials', 404, FAIL);
+        return next(err);
     }
-    catch (error) {
-        console.error(error);
-        return res.status(500).json({ status: FAIL, message: 'An unexpected error occurred during login' });
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+        const err = AppError.create('Invalid credentials', 400, FAIL);
+        return next(err);
     }
-}
+
+    const accessToken = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+    if (!refreshToken || !accessToken) {
+        const err = AppError.create('Failed to generate tokens', 500, FAIL);
+        return next(err);
+    }
+
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    })
+    return res.status(200).json({
+        status: SUCCESS,
+        message: 'User logged in successfully',
+        data: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin,
+            accessToken: accessToken
+        }
+    });
+});
 
 const logoutUser = (req, res) => {
-    try {
-        res.clearCookie('refreshToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
-        res.status(200).json({ status: SUCCESS, message: 'Logged out successfully' });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ status: FAIL, message: 'An error occurred during logout' });
-    }
-}
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
+    res.status(200).json({ status: SUCCESS, message: 'Logged out successfully' });
+    
+};
 
 module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser };
