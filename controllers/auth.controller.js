@@ -23,23 +23,17 @@ const refreshAccessToken = async (req, res) => {
 const registerUser = async (req, res) => {
     try {
         const { name, email, password, isAdmin } = req.body;
+        if(!name || !email || !password) {
+            return res.status(400).json({ status: FAIL, message: 'All fields are required' });
+        }
         
-        if (!name) {
-            return res.status(400).json({ status: FAIL, message: 'Name is required' });
-        }
-        if (!email) {
-            return res.status(400).json({ status: FAIL, message: 'Email is required' });
-        }
-        if (!password) {
-            return res.status(400).json({ status: FAIL, message: 'Password is required' });
-        }
         if (password.length < 6) {
             return res.status(400).json({ status: FAIL, message: 'Password must be at least 6 characters long' });
         }
 
         const userExists = await User.findOne({ email });
         if (userExists) {
-            return res.status(400).json({ status: FAIL, message: 'User already exists' });
+            return res.status(400).json({ status: FAIL, message: 'Registration failed' });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -64,7 +58,7 @@ const registerUser = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ status: FAIL, message: 'Server error from user register' });
+        return res.status(500).json({ status: FAIL, message: 'An unexpected error occurred during registration' });
     }
 }
 
@@ -73,17 +67,17 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         if (!email || !password) {
-            return res.status(400).json({ status: FAIL, message: "Email and Password are required" });
+            return res.status(400).json({ status: FAIL, message: "Invalid credentials" });
         }
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ status: FAIL, message: "Invalid email or password" });
+            return res.status(400).json({ status: FAIL, message: "Invalid credentials" });
         }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
-            return res.status(400).json({ status: FAIL, message: "Invalid email or password" });
+            return res.status(400).json({ status: FAIL, message: "Invalid credentials" });
         }
         const accessToken = generateToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
@@ -110,7 +104,7 @@ const loginUser = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ status: FAIL, message: 'Server error from user login' });
+        return res.status(500).json({ status: FAIL, message: 'An unexpected error occurred during login' });
     }
 }
 
@@ -124,7 +118,7 @@ const logoutUser = (req, res) => {
         res.status(200).json({ status: SUCCESS, message: 'Logged out successfully' });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ status: FAIL, message: 'Server error from user logout' });
+        return res.status(500).json({ status: FAIL, message: 'An error occurred during logout' });
     }
 }
 
