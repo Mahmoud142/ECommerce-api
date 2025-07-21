@@ -55,7 +55,7 @@ const createOrder = async (req, res) => {
         res.status(201).json({ status: SUCCESS, message: "Order created successfully", data: { order: createdOrder } });
     } catch (error) {
         console.error("Error creating order:", error);
-        res.status(500).json({ status: FAIL, message: "Internal Server Error from orders" });
+        res.status(500).json({ status: FAIL, message: "An unexpected error occurred while creating the order. Please try again later." });
     }
 }
 
@@ -65,7 +65,7 @@ const getMyOrders = async (req, res) => {
         res.status(200).json({ status: SUCCESS, message: "Orders fetched successfully", data: { orders: orders } });
     } catch (error) {
         console.error("Error fetching user orders:", error);
-        res.status(500).json({ status: FAIL, message: "Internal Server Error from orders" });
+        res.status(500).json({ status: FAIL, message: "An unexpected error occurred while fetching your orders. Please try again later." });
     }
 }
 
@@ -82,7 +82,8 @@ const getOrderById = async (req, res) => {
         }
     } catch (error) {
         console.error("Error fetching order by ID:", error);
-        res.status(500).json({ status: FAIL, message: "Internal Server Error from orders" });
+        res.status(500).json({
+            status: FAIL, message: "Internal Server Error while fetching order" });
     }
 }
 
@@ -118,7 +119,7 @@ const makeOrderAsPaid = async (req, res) => {
         });
     } catch (error) {
         console.error("Error updating order payment status:", error);
-        res.status(500).json({ status: FAIL, message: "Internal Server Error from orders" });
+        res.status(500).json({ status: FAIL, message: "Internal Server Error while updating order payment status" });
     }
 }
 
@@ -138,8 +139,8 @@ const markOrderAsDelivered = async (req, res) => {
         const updatedOrder = await order.save();
         res.status(200).json({ status: SUCCESS, message: "Order marked as delivered", data: { order: updatedOrder } });
     } catch (error) {
-        console.error("internal server error from mark order as deliverd", error);
-        res.status(500).json({ status: FAIL, message: "Internal Server Error from orders" });
+        console.error("internal server error from mark order as delivered", error);
+        res.status(500).json({ status: FAIL, message: "Internal Server Error while marking order as delivered" });
     }
 }
 
@@ -149,7 +150,7 @@ const getAllOrders = async (req, res) => {
         res.status(200).json({ status: SUCCESS, message: "Orders fetched successfully", data: { orders: orders } });
     } catch (error) {
         console.error("Error fetching all orders:", error);
-        res.status(500).json({ status: FAIL, message: "Internal Server Error from orders" });
+        res.status(500).json({ status: FAIL, message: "Internal Server Error while fetching all orders" });
     }
 }
 
