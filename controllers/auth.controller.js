@@ -19,7 +19,6 @@ const refreshAccessToken = asyncWrapper(async (req, res, next) => {
         const err = AppError.create('Forbidden: Invalid refresh token', 403, FAIL);
         return next(err);
     }
-    
     jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
         if (err || user._id.toString() !== decoded.id) {
             const error = AppError.create('Invalid refresh token', 403, FAIL);
@@ -116,8 +115,21 @@ const loginUser = asyncWrapper(async (req, res, next) => {
     });
 });
 
-const logoutUser = (req, res) => {
-    res.clearCookie('refreshToken', {
+const logoutUser = async (req, res, next) => {
+
+    const cookies = req.cookies;
+    if (!cookies?.jwt) {
+        const err = AppError.create('No refresh token provided', 401, FAIL);
+        return next(err);
+    }
+    const refreshToken = cookies.jwt;
+    const user = await User.findOne({ refreshToken: refreshToken });
+    if (user) {
+        user.refreshToken = user.refreshToken.filter(token => token !== refreshToken);
+        await user.save();
+    }
+
+    res.clearCookie('jwt', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
