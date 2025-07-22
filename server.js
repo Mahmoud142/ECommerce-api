@@ -5,6 +5,7 @@ const PORT = process.env.PORT || 3000;
 // const bodyParser = require('body-parser');
 require('dotenv').config();
 
+// for refresh token
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 

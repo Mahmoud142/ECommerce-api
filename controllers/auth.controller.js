@@ -4,22 +4,32 @@ const { generateToken, generateRefreshToken } = require('../utils/generateToken'
 const { SUCCESS, FAIL } = require('../utils/httpStatusText');
 const AppError = require('../utils/appError');
 const asyncWrapper = require('../middlewares/asyncWrapper');
+const jwt = require('jsonwebtoken');
 
-const refreshAccessToken = async (req, res) => {
-    const token = req.cookies.refreshToken;
-    if (!token) {
-        return res.status(401).json({ status: FAIL, message: 'No refresh token provided' });
+const refreshAccessToken = asyncWrapper(async (req, res, next) => {
+    const cookies = req.cookies;
+    if (!cookies?.jwt) {
+        const err = AppError.create('No refresh token provided', 401, FAIL);
+        return next(err);
     }
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const refreshToken = cookies.jwt;
+
+    const user = await User.findOne({ refreshToken: refreshToken });
+    if (!user) {
+        const err = AppError.create('Forbidden: Invalid refresh token', 403, FAIL);
+        return next(err);
+    }
+    
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+        if (err || user._id.toString() !== decoded.id) {
+            const error = AppError.create('Invalid refresh token', 403, FAIL);
+            return next(error);
+        }
         const accessToken = generateToken(decoded.id);
         return res.status(200).json({ status: SUCCESS, token: accessToken });
-    } catch (error) {
-        console.error('Invalid refresh token:', error.message);
-        res.status(403).json({ status: FAIL, message: 'Invalid refresh token' });
-    }
+    });
 
-}
+});
 
 const registerUser = asyncWrapper(async (req, res, next) => {
 
@@ -76,14 +86,18 @@ const loginUser = asyncWrapper(async (req, res, next) => {
         return next(err);
     }
 
-    const accessToken = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const accessToken = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    user.refreshToken.push(refreshToken);
+    await user.save();
+
     if (!refreshToken || !accessToken) {
         const err = AppError.create('Failed to generate tokens', 500, FAIL);
         return next(err);
     }
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('jwt', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -109,7 +123,7 @@ const logoutUser = (req, res) => {
         sameSite: 'strict'
     });
     res.status(200).json({ status: SUCCESS, message: 'Logged out successfully' });
-    
+
 };
 
 module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser };

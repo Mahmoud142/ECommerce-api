@@ -6,7 +6,7 @@ const { validateRegister,validateLogin } = require('../middlewares/validationSch
 
 router.post('/register', validateRegister, registerUser);
 router.post('/login', validateLogin, loginUser);
-router.post('/refresh-token', refreshAccessToken);
+router.post('/refresh', refreshAccessToken);
 router.post('/logout', logoutUser);
 
 module.exports = router;
