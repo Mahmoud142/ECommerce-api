@@ -32,7 +32,7 @@ const refreshAccessToken = asyncWrapper(async (req, res, next) => {
 
 const registerUser = asyncWrapper(async (req, res, next) => {
 
-    const { name, email, password , phone } = req.body;
+    const { name, email, password, phone } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -49,6 +49,7 @@ const registerUser = asyncWrapper(async (req, res, next) => {
     });
 
     const token = generateToken(user._id);
+
     return res.status(201).json({
         status: SUCCESS,
         message: 'User registered successfully',
@@ -66,21 +67,14 @@ const registerUser = asyncWrapper(async (req, res, next) => {
 const loginUser = asyncWrapper(async (req, res, next) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-        const err = AppError.create('Invalid email or password', 400, FAIL);
-        return next(err);
-    }
-
     const user = await User.findOne({ email });
-    if (!user) {
-        const err = AppError.create('Invalid credentials', 404, FAIL);
-        return next(err);
+    let isPasswordMatch = false;
+    if (user) {
+        isPasswordMatch = await bcrypt.compare(password, user.password);
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatch) {
-        const err = AppError.create('Invalid credentials', 400, FAIL);
-        return next(err);
+    if (!user || !isPasswordMatch) {
+        return next(AppError.create('Invalid credentials', 404, FAIL));
     }
 
     const accessToken = generateToken(user);
@@ -88,28 +82,21 @@ const loginUser = asyncWrapper(async (req, res, next) => {
 
     user.refreshToken.push(refreshToken);
     await user.save();
-
-    if (!refreshToken || !accessToken) {
-        const err = AppError.create('Failed to generate tokens', 500, FAIL);
-        return next(err);
-    }
-
+    
+    
     res.cookie('jwt', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
+    delete user._doc.password;
+    delete user._doc.refreshToken;
+
     return res.status(200).json({
         status: SUCCESS,
         message: 'User logged in successfully',
-        data: {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            isAdmin: user.isAdmin,
-            accessToken: accessToken
-        }
+        data: { user, accessToken }
     });
 });
 
