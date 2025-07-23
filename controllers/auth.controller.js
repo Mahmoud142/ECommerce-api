@@ -32,26 +32,23 @@ const refreshAccessToken = asyncWrapper(async (req, res, next) => {
 
 const registerUser = asyncWrapper(async (req, res, next) => {
 
-    const { name, email, password, isAdmin } = req.body;
-    if (!name || !email || !password) {
-        const err = AppError.create('All fields are required', 400, FAIL);
-        return next(err);
-    }
+    const { name, email, password , phone } = req.body;
 
     const userExists = await User.findOne({ email });
+
     if (userExists) {
         const err = AppError.create('User already exists', 400, FAIL);
         return next(err);
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
     const user = await User.create({
         name,
         email,
-        password: hashedPassword,
-        isAdmin: isAdmin || false
+        password,
+        phone
     });
+
+    const token = generateToken(user._id);
     return res.status(201).json({
         status: SUCCESS,
         message: 'User registered successfully',
@@ -59,7 +56,8 @@ const registerUser = asyncWrapper(async (req, res, next) => {
             _id: user._id,
             name: user.name,
             email: user.email,
-            token: generateToken(user._id),
+            phone: user.phone,
+            token: token,
         }
     });
 });
@@ -115,7 +113,7 @@ const loginUser = asyncWrapper(async (req, res, next) => {
     });
 });
 
-const logoutUser = async (req, res, next) => {
+const logoutUser = asyncWrapper(async (req, res, next) => {
 
     const cookies = req.cookies;
     if (!cookies?.jwt) {
@@ -136,6 +134,6 @@ const logoutUser = async (req, res, next) => {
     });
     res.status(200).json({ status: SUCCESS, message: 'Logged out successfully' });
 
-};
+});
 
 module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser };
