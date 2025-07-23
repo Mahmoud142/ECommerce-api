@@ -14,7 +14,8 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+const upload = require('multer');
+app.use(upload().any());
 // =========Database Connection==========
 const connectDB = require('./config/db');
 
