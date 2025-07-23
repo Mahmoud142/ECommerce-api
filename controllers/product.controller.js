@@ -4,22 +4,9 @@ const AppError = require('../utils/appError');
 const asyncWrapper = require('../middlewares/asyncWrapper');
 
 const createProduct = asyncWrapper(async (req, res, next) => {
-    const {
-        name, description, price, category, image, brand, countInStock } = req.body;
-    if (!name || !description || !price || !category || !image || !countInStock) {
-        const err = AppError.create('All fields are required', 400, FAIL);
-        return next(err);
-    }
-    const product = new Product({
-        user: req.user._id,
-        name,
-        description,
-        price,
-        category,
-        image: image || 'http://localhost:3000/api/uploads/default.jpg',
-        brand: brand || ' ',
-        countInStock
-    });
+
+    const product = new Product({ ...req.body });
+    product.user = req.user._id;
     const createdProduct = await product.save();
     res.status(201).json({
         status: SUCCESS,
