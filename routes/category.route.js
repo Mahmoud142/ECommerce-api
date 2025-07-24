@@ -11,11 +11,17 @@ const {
     getCategoryById
 } = require('../controllers/category.controller');
 
+const {
+    createCategoryValidator,
+    getCategoryValidator,
+    deleteCategoryValidator,
+    updateCategoryValidator
+} = require('../utils/validators/category.validator');
 
 
-router.post('/', uploadSingleImage, resizeImage, createCategory);
+router.post('/', uploadSingleImage, resizeImage, createCategoryValidator, createCategory);
 router.get('/', getCategories);
-router.get('/:id', getCategoryById);
-router.put('/:id', uploadSingleImage, resizeImage, updateCategory);
-router.delete('/:id', deleteCategory);
+router.get('/:id', getCategoryValidator, getCategoryById);
+router.put('/:id', uploadSingleImage, resizeImage, updateCategoryValidator, updateCategory);
+router.delete('/:id', deleteCategoryValidator, deleteCategory);
 module.exports = router;

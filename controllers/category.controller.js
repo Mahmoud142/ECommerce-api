@@ -6,7 +6,9 @@ const { uploadSingleImage } = require('../middlewares/imageUpload');
 
 const { v4: uuidv4 } = require('uuid');
 const sharp = require('sharp');
+// @desc    Upload a single image for category
 exports.uploadSingleImage = uploadSingleImage('image');
+// @desc    resize and save to uploads/categories
 exports.resizeImage = asyncWrapper(async (req, res, next) => {
     if (!req.file) return next();
     
