@@ -19,12 +19,13 @@ const categorySchema = new mongoose.Schema({
         maxlength: [500, 'Category description must not exceed 500 characters']
     },
     image: String,
-    
+
 }, { timestamps: true });
 
 const setImageUrl = (doc) => {
-    if (doc.image) {
-        doc.image = `${process.env.BASE_URL}/categories/${doc.image}`;
+    if (doc.image && !doc.image.startsWith(`${process.env.BASE_URL}/uploads/categories/`)) {
+        console.log(doc.image);
+        doc.image = `${process.env.BASE_URL}/uploads/categories/${doc.image}`;
     }
 };
 
