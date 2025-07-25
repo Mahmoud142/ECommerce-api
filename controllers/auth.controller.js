@@ -77,7 +77,7 @@ const loginUser = asyncWrapper(async (req, res, next) => {
         return next(AppError.create('Invalid credentials', 404, FAIL));
     }
 
-    const accessToken = generateToken(user);
+    const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
 
     user.refreshToken.push(refreshToken);
@@ -96,7 +96,7 @@ const loginUser = asyncWrapper(async (req, res, next) => {
     return res.status(200).json({
         status: SUCCESS,
         message: 'User logged in successfully',
-        data: { user, accessToken }
+        data: { user, token }
     });
 });
 
