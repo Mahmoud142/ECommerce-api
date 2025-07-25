@@ -23,11 +23,12 @@ const userRoutes = require('./routes/user.route');
 const productRoutes = require('./routes/product.route');
 const orderRoutes = require('./routes/order.route');
 const categoryRoutes = require('./routes/category.route');
-
+const subCategoryRoutes = require('./routes/subcategory.route');
 // Mounting routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 
