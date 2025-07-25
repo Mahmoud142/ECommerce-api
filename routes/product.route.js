@@ -7,15 +7,17 @@ const {
     getProductById,
     updateProduct,
     deleteProduct,
-    createProductReview
-} = require('../controllers/product.controller');
-const { protect, admin } = require('../middlewares/auth.middleware');
-
-
-router.post('/', protect, admin, createProduct); 
+    createProductReview,
+    uploadProductImages,
+    resizeProductImages } = require('../controllers/product.controller');
+// const { protect, admin } = require('../middlewares/auth.middleware');
+router.post('/', uploadProductImages, resizeProductImages, createProduct);
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
-router.put('/:id', protect, admin, updateProduct);
-router.delete('/:id', protect, admin, deleteProduct);
-router.post('/:id/reviews', protect, createProductReview);
+router.put('/:id', updateProduct);
+router.delete('/:id', deleteProduct);
+router.post('/:id/reviews', createProductReview);
+
+
+
 module.exports = router;

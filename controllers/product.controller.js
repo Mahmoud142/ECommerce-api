@@ -2,11 +2,58 @@ const Product = require('../models/product.model');
 const { SUCCESS, FAIL } = require('../utils/httpStatusText');
 const AppError = require('../utils/appError');
 const asyncWrapper = require('../middlewares/asyncWrapper');
+const { v4: uuidv4 } = require('uuid');
+const sharp = require('sharp');
+const multer = require('multer');
 
-const createProduct = asyncWrapper(async (req, res, next) => {
+// Multer configuration for file uploads
+const multerStorage = multer.memoryStorage();
 
-    const product = new Product({ ...req.body });
-    product.user = req.user._id;
+const multerFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image')) {
+        cb(null, true);
+    } else {
+        cb(new AppError('Not an image! Please upload only images.', 400, FAIL), false);
+    }
+}
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+exports.uploadProductImages = upload.fields([
+    { name: 'imageCover', maxCount: 1 },
+    { name: 'images', maxCount: 5 }
+]);
+exports.resizeProductImages = asyncWrapper(async (req, res, next) => {
+
+    // 1) Image Process for imageCover
+    if (req.files.imageCover) {
+        const ext = req.files.imageCover[0].mimetype.split('/')[1];
+        const imageCoverFilename = `products-${uuidv4()}-${Date.now()}-cover.${ext}`;
+        await sharp(req.files.imageCover[0].buffer)
+            .toFile(`uploads/products/${imageCoverFilename}`); // write into a file on the disk
+        req.body.imageCover = imageCoverFilename;
+    }
+    // product images array
+    req.body.images = [];
+    // 2- Image processing for images
+    if (req.files.images) {
+        await Promise.all(
+            req.files.images.map(async (img, index) => {
+                const ext = img.mimetype.split('/')[1];
+                const filename = `products-${uuidv4()}-${Date.now()}-${index + 1}.${ext}`;
+                await sharp(img.buffer)
+                    .toFile(`uploads/products/${filename}`);
+                req.body.images.push(filename);
+            })
+        );
+    }
+    next();
+});
+
+
+
+exports.createProduct = asyncWrapper(async (req, res, next) => {
+    const product = new Product(req.body);
     const createdProduct = await product.save();
     res.status(201).json({
         status: SUCCESS,
@@ -15,12 +62,12 @@ const createProduct = asyncWrapper(async (req, res, next) => {
     });
 });
 
-const getAllProducts = asyncWrapper(async (req, res, next) => {
+exports.getAllProducts = asyncWrapper(async (req, res, next) => {
     const products = await Product.find({});
     res.status(200).json({ status: SUCCESS, message: 'Products fetched successfully', data: { products: products } });
 });
 
-const getProductById = asyncWrapper(async (req, res, next) => {
+exports.getProductById = asyncWrapper(async (req, res, next) => {
     if (!req.params.id) {
         const err = AppError.create('Product ID is required', 400, FAIL);
         return next(err);
@@ -33,28 +80,19 @@ const getProductById = asyncWrapper(async (req, res, next) => {
     res.status(200).json({ status: SUCCESS, message: 'Product fetched successfully', data: { product: product } });
 });
 
-const updateProduct = asyncWrapper(async (req, res, next) => {
-
-    const product = await Product.findById(req.params.id);
-    if (!product) {
+exports.updateProduct = asyncWrapper(async (req, res, next) => {
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    });
+    if (!updatedProduct) {
         const err = AppError.create('Product not found', 404, FAIL);
         return next(err);
     }
-
-    const { name, description, price, category, image, brand, countInStock } = req.body;
-    product.name = name || product.name;
-    product.description = description || product.description;
-    product.price = price || product.price;
-    product.category = category || product.category;
-    product.image = image || product.image;
-    product.brand = brand || product.brand;
-    product.countInStock = countInStock || product.countInStock;
-
-    const updatedProduct = await product.save();
     res.status(200).json({ status: SUCCESS, message: 'Product updated successfully', data: { product: updatedProduct } });
 });
 
-const deleteProduct = asyncWrapper(async (req, res, next) => {
+exports.deleteProduct = asyncWrapper(async (req, res, next) => {
 
     const product = await Product.findById(req.params.id);
     if (!product) {
@@ -65,7 +103,7 @@ const deleteProduct = asyncWrapper(async (req, res, next) => {
     res.status(200).json({ status: SUCCESS, message: 'Product deleted successfully' });
 });
 
-const createProductReview = asyncWrapper(async (req, res, next) => {
+exports.createProductReview = asyncWrapper(async (req, res, next) => {
 
     const { rating, comment } = req.body;
     const product = await Product.findById(req.params.id);
@@ -97,12 +135,3 @@ const createProductReview = asyncWrapper(async (req, res, next) => {
         data: { review: review }
     });
 });
-
-module.exports = {
-    createProduct,
-    getAllProducts,
-    getProductById,
-    updateProduct,
-    deleteProduct,
-    createProductReview
-}

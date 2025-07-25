@@ -13,7 +13,6 @@ exports.resizeImage = asyncWrapper(async (req, res, next) => {
     if (!req.file) return next();
     
     const ext = req.file.mimetype.split('/')[1];
-    // console.log(req.file);
     const filename = `category-${uuidv4()}-${Date.now()}.${ext}`;
     // write into a file on the disk
     await sharp(req.file.buffer).toFile(`uploads/categories/${filename}`); 
