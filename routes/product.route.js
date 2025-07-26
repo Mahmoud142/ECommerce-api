@@ -10,12 +10,21 @@ const {
     createProductReview,
     uploadProductImages,
     resizeProductImages } = require('../controllers/product.controller');
-// const { protect, admin } = require('../middlewares/auth.middleware');
-router.post('/', uploadProductImages, resizeProductImages, createProduct);
+
+// const {
+// createProductValidator } = require('../utils/validators/product.validator');
+
+const {
+    createProductValidator,
+    getProductValidator,
+    updateProductValidator,
+    deleteProductValidator } = require('../utils/validators/product.validator');
+
+router.post('/', uploadProductImages, resizeProductImages, createProductValidator, createProduct);
 router.get('/', getAllProducts);
-router.get('/:id', getProductById);
-router.put('/:id', updateProduct);
-router.delete('/:id', deleteProduct);
+router.get('/:id', getProductValidator, getProductById);
+router.put('/:id', updateProductValidator, updateProduct);
+router.delete('/:id', deleteProductValidator, deleteProduct);
 router.post('/:id/reviews', createProductReview);
 
 

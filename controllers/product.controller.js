@@ -54,6 +54,7 @@ exports.resizeProductImages = asyncWrapper(async (req, res, next) => {
 
 exports.createProduct = asyncWrapper(async (req, res, next) => {
     const product = new Product(req.body);
+    // console.log('req.body', req.body);
     const createdProduct = await product.save();
     res.status(201).json({
         status: SUCCESS,

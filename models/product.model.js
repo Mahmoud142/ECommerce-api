@@ -22,13 +22,13 @@ const reviewSchema = new mongoose.Schema({
 
 const productSchema = new mongoose.Schema(
     {
-        title: {
+        name: {
             type: String,
             trim: true,
             required: [true, 'Product title is required'],
-            unique: [true, 'Product title must be unique'],
             minlength: [3, 'Product title must be at least 3 characters long'],
-            maxlength: [100, 'Product title must not exceed 100 characters long']
+            maxlength: [100, 'Product title must not exceed 100 characters long'],
+            // Remove unique: true to avoid duplicate key errors if index still exists
         },
         slug: {
             type: String,
