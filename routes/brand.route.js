@@ -10,12 +10,18 @@ const {
     resizeImage
 } = require('../controllers/brand.controller');
 
+const {
+    createBrandValidator,
+    getBrandValidator,
+    updateBrandValidator,
+    deleteBrandValidator
+} = require('../utils/validators/brand.validator');
 
-router.post('/', uploadBrandImage, resizeImage, createBrand);
+router.post('/', uploadBrandImage, resizeImage, createBrandValidator, createBrand);
 router.get('/', getAllBrands);
-router.get('/:id', getBrandById);
-router.put('/:id', updateBrand);
-router.delete('/:id', deleteBrand);
+router.get('/:id', getBrandValidator, getBrandById);
+router.put('/:id', updateBrandValidator, updateBrand);
+router.delete('/:id', deleteBrandValidator, deleteBrand);
 
 
 module.exports = router;
