@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema({
         maxlength: [50, 'Name must be at most 50 characters long'],
         trim: true,
     },
+    slug: {
+        type: String,
+        lowercase: true
+    },
     email: {
         type: String,
         required: [true, 'Email is required'],
@@ -19,14 +23,37 @@ const userSchema = new mongoose.Schema({
         required: [true, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters long'],
     },
-    phone: {
-        type : String
-    },
+    phone: String,
+    profileImg: String,
+    passwordChangedAt: Date,
+    passwordResetcode: String,
+    passwordResetExpires: Date,
+    resetCodeVerified: Boolean,
     role: {
         type: String,
         enum: ['user', 'manager', 'admin'],
         default: 'user'
     },
+    active: {
+        type: Boolean,
+        default: true,
+    },
+    wishlist: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Product',
+        },
+    ],
+    addresses: [
+        {
+            id: { type: mongoose.Schema.Types.ObjectId },
+            alias: String,
+            details: String,
+            phone: String,
+            city: String,
+            postalCode: String,
+        }
+    ],
     refreshToken: [String]
 }, {
     timestamps: true
