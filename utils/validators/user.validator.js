@@ -126,19 +126,19 @@ exports.changeUserPasswordValidator = [
 exports.changeLoggedUserPasswordValidator = [
     check('currentPassword')
         .notEmpty().withMessage('Current password is required'),
-    check('confirmPassword')
+    check('passwordConfirm')
         .notEmpty().withMessage('Confirm password is required'),
     check('password')
         .notEmpty().withMessage('New password is required')
         .isLength({ min: 8 }).withMessage('New password must be at least 8 characters long')
         .custom(async (val, { req }) => {
-            const user = await User.findById(req.params.id);
+            const user = await User.findById(req.user._id);
             const isMatch = await bcrypt.compare(req.body.currentPassword, user.password);
             if (!isMatch) {
                 throw new Error('Current password is incorrect');
             }
             // Check if new password and confirm password match
-            if (val !== req.body.confirmPassword) {
+            if (val !== req.body.passwordConfirm) {
                 throw new Error('Passwords do not match');
             }
             return true;
