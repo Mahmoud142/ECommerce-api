@@ -2,7 +2,7 @@ const asyncWrapper = require('../middlewares/asyncWrapper');
 const AppError = require('../utils/appError');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
-
+const {SUCCESS, FAIL} = require('../utils/httpStatusText');
 // make sure that the user is logged in
 exports.auth = asyncWrapper(async (req, res, next) => {
     // get token
