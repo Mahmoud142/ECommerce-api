@@ -25,6 +25,7 @@ const orderRoutes = require('./routes/order.route');
 const categoryRoutes = require('./routes/category.route');
 const subCategoryRoutes = require('./routes/subcategory.route');
 const brandRoutes = require('./routes/brand.route');
+const couponRoutes = require('./routes/coupon.route');
 // Mounting routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -33,6 +34,7 @@ app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/coupons', couponRoutes);
 
 
 const { SUCCESS, FAIL, ERROR } = require('./utils/httpStatusText');
