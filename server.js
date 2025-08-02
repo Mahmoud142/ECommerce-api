@@ -26,6 +26,7 @@ const categoryRoutes = require('./routes/category.route');
 const subCategoryRoutes = require('./routes/subcategory.route');
 const brandRoutes = require('./routes/brand.route');
 const couponRoutes = require('./routes/coupon.route');
+const wishlistRoutes = require('./routes/wishlist.route')
 // Mounting routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -35,7 +36,7 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
-
+app.use('/api/wishlist', wishlistRoutes);
 
 const { SUCCESS, FAIL, ERROR } = require('./utils/httpStatusText');
 // Handle 404 for undefined routes
