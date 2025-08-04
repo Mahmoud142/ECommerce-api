@@ -4,7 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
 
-// for refresh token
+
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
@@ -12,11 +12,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// const upload = require('multer');
-// app.use(upload().any());
-
 
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+
+
 //=========Routes===========
 const authRoutes = require('./routes/auth.route');
 const userRoutes = require('./routes/user.route');
@@ -27,6 +28,9 @@ const subCategoryRoutes = require('./routes/subcategory.route');
 const brandRoutes = require('./routes/brand.route');
 const couponRoutes = require('./routes/coupon.route');
 const wishlistRoutes = require('./routes/wishlist.route')
+const cartRoutes = require('./routes/cart.route');
+
+
 // Mounting routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -37,6 +41,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/cart', cartRoutes);
+
+
 
 const { SUCCESS, FAIL, ERROR } = require('./utils/httpStatusText');
 // Handle 404 for undefined routes
