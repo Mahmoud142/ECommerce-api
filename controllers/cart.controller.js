@@ -15,41 +15,40 @@ const calculateTotalCartPrice = async (cart) => {
     cart.totalAfterDiscount = totalPrice;
     cart.coupon = undefined;
 
-    await cart.save();
-
     return totalPrice;
 }
 // @desc      Add product to cart
 // @route     POST /api/cart
 // @access    Private/User
 exports.addProductToCart = asyncWrapper(async (req, res, next) => {
-
     const { productId, color } = req.body;
-
+    const product = await Product.findById(productId);
+    if (!product) {
+        return next(AppError.create('Product not found', 404, FAIL));
+    }
+    
     let cart = await Cart.findOne({ user: req.user._id });
-
-    if (cart) {
+    if (!cart) {
+        // create a new cart if it doesn't exist
+        cart = await Cart.create({
+            user: req.user._id, products: [
+            { product: productId, color, quantity: 1, price: product.price }
+        ] });
+    } else {
         const productIndex = cart.products.findIndex(
-            (p) => p.product.toString() === req.body.productId &&
-                p.color === req.body.color
-        );
+            (item) => item.product.toString() === productId && item.color === color);
         if (productIndex > -1) {
             // product already exists in cart, update quantity
-            const productItem = cart.products[productIndex];
-            productItem.quantity += 1;
-            cart.products[productIndex] = productItem;
+            const cartItem = cart.products[productIndex];
+            cartItem.quantity += 1;
+            cart.products[productIndex] = cartItem;
         } else {
-            cart.products.push({ product: productId, color, price: product.price })
+            cart.products.push({product: productId, color, price: product.price})
         }
     }
-    else {
-        cart = await Cart.create({
-            products: [{ product: productId, color, price: product.price }],
-            user: req.user._id
-        });
-    }
 
-    await calculateTotalCartPrice(cart);
+    calculateTotalCartPrice(cart);
+    await cart.save();
 
     res.status(200).json({
         success: true,
@@ -64,17 +63,7 @@ exports.addProductToCart = asyncWrapper(async (req, res, next) => {
 // @route GET /api/cart
 // @access Private/User
 exports.getLoggedUserCart = asyncWrapper(async (req, res, next) => {
-    const cart = await Cart.findOne({ user: req.user._id })
-        .populate({
-            path: 'products.product',
-            select: 'title imageCover ratingsAverage brand category ',
-            populate: { path: 'brand', select: 'name -_id', model: 'Brand' },
-        })
-        .populate({
-            path: 'products.product',
-            select: 'title imageCover ratingsAverage brand category',
-            populate: { path: 'category', select: 'name -_id', model: 'Category' },
-        });
+    const cart = await Cart.findOne({ user: req.user._id });
     
     if (!cart) {
         return next(AppError.create('Cart not found', 404, FAIL));
@@ -91,16 +80,18 @@ exports.getLoggedUserCart = asyncWrapper(async (req, res, next) => {
 // @route DELETE /api/cart/:productId
 // @access Private/User
 exports.deleteProductFromCart = asyncWrapper(async (req, res, next) => {
-    const cart = await Cart.findOne(
+    const cart = await Cart.findOneAndUpdate(
         { user: req.user._id },
         { $pull: { products: { product: req.params.productId } } },
         { new: true }
     );
-    calculateTotalCartPrice(cart);
-    await cart.save();
     if (!cart) {
         return next(AppError.create('Cart not found', 404, FAIL));
     }
+
+    await calculateTotalCartPrice(cart);
+    await cart.save();
+
     return res.status(200).json({
         status: SUCCESS,
         numberOfItems: cart.products.length,
@@ -128,18 +119,9 @@ exports.clearLoggedUserCart = asyncWrapper(async (req, res, next) => {
 exports.updateCartProductQuantity = asyncWrapper(async (req, res, next) => {
 
     const quantity = req.body.quantity;
-    const cart = await Cart.findOne({ user: req.user._id })
-        .populate({
-            path: 'products.product',
-            select: 'title imageCover ratingsAverage brand category',
-            populate: { path: 'brand', select: 'name - _id', model: 'Brand' }
-        })
-        .populate({
-            path: 'products.product',
-            select: 'title imageCover ratingsAverage brand category',
-            populate: { path: 'category', select: 'name -_id', model: 'Category' }
-        });
-
+    const productId = req.params.productId;
+    const cart = await Cart.findOne({ user: req.user._id });
+        // console.log("I am here");
     if (!cart) {
         return (AppError('Cart not found', 404, FAIL));
     }
@@ -167,9 +149,10 @@ exports.updateCartProductQuantity = asyncWrapper(async (req, res, next) => {
 // @desc Apply coupon to cart
 // @route POST /api/cart/applyCoupon
 // @access Private/User
-exports.applyCoupon = asyncWrapper(async (req, res, next) => {
+exports.applyCouponToCart = asyncWrapper(async (req, res, next) => {
 
     // 1- check if coupon exists and is valid
+    // console.log("I am coupon");
     const coupon = await Coupon.findOne({
         name: req.body.coupon,
         expire: { $gt: Date.now() }
