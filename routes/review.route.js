@@ -7,7 +7,8 @@ const {
     createReview,
     getReviews,
     getReview,
-    updateReview
+    updateReview,
+    deleteReview
 } = require('../controllers/review.controller');
 
 const protect = require('../middlewares/protect.middleware');
@@ -20,6 +21,7 @@ router.route('/')
 router.route('/:id')
     .get(getReview)
     .put(protect.auth, protect.allowedTo('user'), updateReview)
+    .delete(protect.auth, protect.allowedTo('user','manager','admin'), deleteReview);
 
 
 

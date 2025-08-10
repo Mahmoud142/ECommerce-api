@@ -65,3 +65,17 @@ exports.updateReview = asyncWrapper(async (req, res, next) => {
         data: review
     });
 })
+
+exports.deleteReview = asyncWrapper(async (req, res, next) => {
+    const review = await Review.findByIdAndDelete(req.params.id);
+    if (!review) {
+        return res.status(404).json({
+            status: FAIL,
+            message: 'Review not found'
+        });
+    }
+    res.status(200).json({
+        status: SUCCESS,
+        data: null
+    });
+})
