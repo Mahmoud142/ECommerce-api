@@ -31,3 +31,17 @@ exports.getReviews = asyncWrapper(async (req, res, next) => {
         data: reviews
     });
 })
+
+exports.getReview = asyncWrapper(async (req, res, next) => {
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+        return res.status(404).json({
+            status: FAIL,
+            message: 'Review not found'
+        });
+    }
+    res.status(200).json({
+        status: SUCCESS,
+        data: review
+    });
+})
