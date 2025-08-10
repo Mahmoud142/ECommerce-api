@@ -20,7 +20,7 @@ exports.signup = asyncWrapper(async (req, res, next) => {
         phone: req.body.phone,
         profileImg: req.body.profileImg
     })
-
+    delete user._doc.password;
     const token = generateToken(user._id);
     res.status(201).json({ data: user, token });
 });
