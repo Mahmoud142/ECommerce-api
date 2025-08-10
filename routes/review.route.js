@@ -4,8 +4,9 @@ const express= require('express');
 
 const {
     createFilterObject,
+    createReview,
     getReviews,
-    createReview
+    getReview
 } = require('../controllers/review.controller');
 
 const protect = require('../middlewares/protect.middleware');
@@ -15,6 +16,8 @@ router.route('/')
     .get(createFilterObject, getReviews)
     .post(protect.auth, protect.allowedTo('user'), createReview);
 
+router.route('/:id')
+    .get(getReview);
 
 
 
