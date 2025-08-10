@@ -29,7 +29,7 @@ const brandRoutes = require('./routes/brand.route');
 const couponRoutes = require('./routes/coupon.route');
 const wishlistRoutes = require('./routes/wishlist.route')
 const cartRoutes = require('./routes/cart.route');
-
+const reviewRoutes = require('./routes/review.route');
 
 // Mounting routes
 app.use('/api/auth', authRoutes);
@@ -42,8 +42,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
-
-
+app.use('/api/reviews', reviewRoutes);
 
 const { SUCCESS, FAIL, ERROR } = require('./utils/httpStatusText');
 // Handle 404 for undefined routes
