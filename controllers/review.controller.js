@@ -45,3 +45,23 @@ exports.getReview = asyncWrapper(async (req, res, next) => {
         data: review
     });
 })
+
+exports.updateReview = asyncWrapper(async (req, res, next) => {
+    const review = await Review.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    });
+
+    if (!review) {
+        return res.status(404).json({
+            status: FAIL,
+            message: 'Review not found'
+        });
+    }
+
+
+    res.status(200).json({
+        status: SUCCESS,
+        data: review
+    });
+})

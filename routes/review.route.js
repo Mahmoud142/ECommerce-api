@@ -6,7 +6,8 @@ const {
     createFilterObject,
     createReview,
     getReviews,
-    getReview
+    getReview,
+    updateReview
 } = require('../controllers/review.controller');
 
 const protect = require('../middlewares/protect.middleware');
@@ -17,7 +18,8 @@ router.route('/')
     .post(protect.auth, protect.allowedTo('user'), createReview);
 
 router.route('/:id')
-    .get(getReview);
+    .get(getReview)
+    .put(protect.auth, protect.allowedTo('user'), updateReview)
 
 
 
