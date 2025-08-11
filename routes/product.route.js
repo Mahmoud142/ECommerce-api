@@ -11,8 +11,6 @@ const {
     uploadProductImages,
     resizeProductImages } = require('../controllers/product.controller');
 
-// const {
-// createProductValidator } = require('../utils/validators/product.validator');
 
 const {
     createProductValidator,
@@ -20,12 +18,17 @@ const {
     updateProductValidator,
     deleteProductValidator } = require('../utils/validators/product.validator');
 
-router.post('/', uploadProductImages, resizeProductImages, createProductValidator, createProduct);
-router.get('/', getAllProducts);
-router.get('/:id', getProductValidator, getProductById);
-router.put('/:id', updateProductValidator, updateProduct);
-router.delete('/:id', deleteProductValidator, deleteProduct);
-router.post('/:id/reviews', createProductReview);
+router.route('/')
+    .post(uploadProductImages, resizeProductImages, createProductValidator, createProduct)
+    .get(getAllProducts);
+
+router.route('/:id')
+    .get(getProductValidator, getProductById)
+    .put(updateProductValidator, updateProduct)
+    .delete(deleteProductValidator, deleteProduct);
+    
+router.route('/:id/reviews')
+    .post(createProductReview);
 
 
 
