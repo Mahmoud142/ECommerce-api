@@ -5,7 +5,8 @@ const {
     addAddress,
     getLoggedUserAddresses,
     deleteAddress,
-    getAddress
+    getAddress,
+    updateAddress
 } = require('../controllers/address.controller');
 const protect = require('../middlewares/protect.middleware')
 
@@ -16,7 +17,8 @@ router.route('/')
 
 router.route('/:addressId')
     .get(protect.auth,protect.allowedTo('user'),getAddress)
-    .delete(protect.auth,protect.allowedTo('user'),deleteAddress)
+    .delete(protect.auth, protect.allowedTo('user'), deleteAddress)
+    .put(protect.auth, protect.allowedTo('user'), updateAddress); // Assuming you want to update an address with the same method
 
 
 

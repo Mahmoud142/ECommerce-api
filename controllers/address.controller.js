@@ -57,6 +57,9 @@ exports.deleteAddress = asyncWrapper(async (req, res, next) => {
     });
 })
 
+//@desc Get a specific address for the logged user
+//@route GET /api/addresses/:addressId
+//@access Private/User
 exports.getAddress = asyncWrapper(async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const address = user.addresses.id(req.params.addressId);
@@ -68,6 +71,29 @@ exports.getAddress = asyncWrapper(async (req, res, next) => {
     res.status(200).json({
         status: SUCCESS,
         message: 'Address retrieved successfully',
+        data: address
+    });
+})
+
+exports.updateAddress = asyncWrapper(async (req, res, next) => {
+    const user = await User.findById(req.user._id);
+    const address = user.addresses.id(req.params.addressId);
+
+    if (!address) {
+        return next(new AppError('Address not found', 404));
+    }
+
+    address.alias = req.body.alias || address.alias;
+    address.details = req.body.details || address.details;
+    address.phone = req.body.phone || address.phone;
+    address.city = req.body.city || address.city;
+    address.postalCode = req.body.postalCode || address.postalCode;
+    
+    await user.save();
+
+    res.status(200).json({
+        status: SUCCESS,
+        message: 'Address updated successfully',
         data: address
     });
 })
