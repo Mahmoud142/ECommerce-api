@@ -9,10 +9,12 @@ const {
 } = require('../controllers/coupon.controller');
 // const protect = require('../middlewares/protect.middleware');
 
-router.get('/',  getAllCoupons);
-router.get('/:id',  getCoupon);
-router.post('/',  createCoupon);
-router.put('/:id',  updateCoupon);
-router.delete('/:id',  deleteCoupon);
+router.route('/')
+    .post(createCoupon)
+    .get(getAllCoupons);
+router.route('/:id')
+    .get(getCoupon)
+    .put(updateCoupon)
+    .delete(deleteCoupon);
 
 module.exports = router;
