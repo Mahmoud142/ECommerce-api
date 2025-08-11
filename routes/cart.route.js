@@ -14,11 +14,18 @@ const {
 
 const { auth } = require('../middlewares/protect.middleware');
 
-router.post('/', auth, addProductToCart);
-router.get('/', auth, getLoggedUserCart);
-router.put('/applyCoupon', auth, applyCouponToCart);
-router.put('/:productId', auth, updateCartProductQuantity);
-router.delete('/:productId', auth, deleteProductFromCart);
-router.delete('/', auth, clearLoggedUserCart);
+router.route('/')
+    .post(auth, addProductToCart)
+    .get(auth, getLoggedUserCart);
+
+router.route('/applyCoupon')
+    .put(auth, applyCouponToCart);
+
+router.route('/:productId')
+    .put(auth, updateCartProductQuantity)
+    .delete(auth, deleteProductFromCart);
+
+router.route('/')// clear all cart items
+    .delete(auth, clearLoggedUserCart);
 
 module.exports = router;
