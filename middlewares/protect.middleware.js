@@ -28,7 +28,9 @@ exports.auth = asyncWrapper(async (req, res, next) => {
         }
     }
     // console.log('currentUser', currentUser);
+    delete currentUser._doc.password;
     req.user = currentUser;
+    // console.log("I am here auth middleware and this is the req.user", req.user);
     next();
 })
 
