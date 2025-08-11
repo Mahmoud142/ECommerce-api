@@ -21,3 +21,14 @@ exports.addAddress = asyncWrapper(async (req, res, next) => {
     });
 
 })
+
+
+exports.getLoggedUserAddresses = asyncWrapper(async (req, res, next) => {
+    const user = await User.findById(req.user._id).select('addresses');
+
+    res.status(200).json({
+        status: SUCCESS,
+        message: 'User addresses retrieved successfully',
+        data: user.addresses
+    });
+})
