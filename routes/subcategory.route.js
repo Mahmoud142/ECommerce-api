@@ -11,11 +11,13 @@ const { createSubcategoryValidator,
     updateSubCategoryValidator,
     deleteSubCategoryValidator } = require('../utils/validators/subcategory.validator');
 
+router.route('/')
+    .post(createSubcategoryValidator, createSubCategory)
+    .get(getAllSubCategories);
 
-router.post('/', createSubcategoryValidator, createSubCategory);
-router.get('/', getAllSubCategories);
-router.get('/:id', getSubCategoryValidator, getSubCategory);
-router.put('/:id', updateSubCategoryValidator, updateSubCategory);
-router.delete('/:id', deleteSubCategoryValidator, deleteSubCategory);
+router.route('/:id')
+    .get(getSubCategoryValidator, getSubCategory)
+    .put(updateSubCategoryValidator, updateSubCategory)
+    .delete(deleteSubCategoryValidator, deleteSubCategory);
 
 module.exports = router;
