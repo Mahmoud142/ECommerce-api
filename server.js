@@ -30,6 +30,7 @@ const couponRoutes = require('./routes/coupon.route');
 const wishlistRoutes = require('./routes/wishlist.route')
 const cartRoutes = require('./routes/cart.route');
 const reviewRoutes = require('./routes/review.route');
+const addressRoutes = require('./routes/address.route');
 
 // Mounting routes
 app.use('/api/auth', authRoutes);
@@ -43,7 +44,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/reviews', reviewRoutes);
-
+app.use('/api/addresses', addressRoutes);
 const { SUCCESS, FAIL, ERROR } = require('./utils/httpStatusText');
 // Handle 404 for undefined routes
 app.use((req, res) => {
