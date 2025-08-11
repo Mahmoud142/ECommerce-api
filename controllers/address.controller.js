@@ -56,3 +56,18 @@ exports.deleteAddress = asyncWrapper(async (req, res, next) => {
         data: user.addresses
     });
 })
+
+exports.getAddress = asyncWrapper(async (req, res, next) => {
+    const user = await User.findById(req.user._id);
+    const address = user.addresses.id(req.params.addressId);
+
+    if (!address) {
+        return next(new AppError('Address not found', 404));
+    }
+
+    res.status(200).json({
+        status: SUCCESS,
+        message: 'Address retrieved successfully',
+        data: address
+    });
+})
