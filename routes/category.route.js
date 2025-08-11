@@ -18,10 +18,11 @@ const {
     updateCategoryValidator
 } = require('../utils/validators/category.validator');
 
-
-router.post('/', uploadSingleImage, resizeImage, createCategoryValidator, createCategory);
-router.get('/', getCategories);
-router.get('/:id', getCategoryValidator, getCategoryById);
-router.put('/:id', uploadSingleImage, resizeImage, updateCategoryValidator, updateCategory);
-router.delete('/:id', deleteCategoryValidator, deleteCategory);
+router.route('/')
+    .post(uploadSingleImage, resizeImage, createCategoryValidator, createCategory)
+    .get(getCategories);
+router.route('/:id')
+    .get(getCategoryValidator, getCategoryById)
+    .put(uploadSingleImage, resizeImage, updateCategoryValidator, updateCategory)
+    .delete(deleteCategoryValidator, deleteCategory);
 module.exports = router;
