@@ -17,11 +17,12 @@ const {
     deleteBrandValidator
 } = require('../utils/validators/brand.validator');
 
-router.post('/', uploadBrandImage, resizeImage, createBrandValidator, createBrand);
-router.get('/', getAllBrands);
-router.get('/:id', getBrandValidator, getBrandById);
-router.put('/:id', updateBrandValidator, updateBrand);
-router.delete('/:id', deleteBrandValidator, deleteBrand);
-
+router.route('/')
+    .post(uploadBrandImage, resizeImage, createBrandValidator, createBrand)
+    .get(getAllBrands);
+router.route('/:id')
+    .get(getBrandValidator, getBrandById)
+    .put(updateBrandValidator, updateBrand)
+    .delete(deleteBrandValidator, deleteBrand);
 
 module.exports = router;
