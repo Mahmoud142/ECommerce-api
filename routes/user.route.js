@@ -27,18 +27,26 @@ const {
 } = require('../utils/validators/user.validator');
 
 // User routes
-//done
 router.get('/getMe', protect.auth, getLoggedUserData);
 router.put('/changeMyPassword', protect.auth, changeLoggedUserPasswordValidator, updateLoggedUserPassword);
 router.put('/updateMe', protect.auth, updateLoggedUserValidator, updateLoggedUserData);
 router.delete('/deleteMe', protect.auth, deleteLoggedUser);
 
-// // Admin routes
-//done
-router.get('/', protect.auth, protect.allowedTo('admin'), getAllUsers);
-router.get('/:id', protect.auth, protect.allowedTo('admin'), getUserValidator, getUser);
-router.post('/', protect.auth, protect.allowedTo('admin'), createUserValidator, createUser);
-router.delete('/:id', protect.auth, protect.allowedTo('admin'), deleteUserValidator, deleteUser);
-router.put('/change-password/:id', protect.auth, protect.allowedTo('admin'), changeUserPasswordValidator, updateUserPassword);
-router.put('/:id', protect.auth, protect.allowedTo('admin'), updateUserValidator, updateUser);
+//Admin routes
+router.route('/')
+    .get(protect.auth, protect.allowedTo('admin'), getAllUsers)
+    .post(protect.auth, protect.allowedTo('admin'), createUserValidator, createUser);
+
+router.route('/:id')
+    .get(protect.auth, protect.allowedTo('admin'), getUserValidator, getUser)
+    .delete(protect.auth, protect.allowedTo('admin'), deleteUserValidator, deleteUser)
+    .put(protect.auth, protect.allowedTo('admin'), updateUserValidator, updateUser);
+
+
+router.put('/change-password/:id',
+    protect.auth,
+    protect.allowedTo('admin'),
+    changeUserPasswordValidator,
+    updateUserPassword
+);
 module.exports = router;
