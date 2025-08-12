@@ -1,98 +1,71 @@
 const mongoose = require('mongoose');
 
-const orderItemSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    quantity: {
-        type: Number,
-        required: true
-    },
-    price: {
-        type: Number,
-        required: true
-    },
-    image: {
-        type: String,
-        required: true
-    },
-    product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true
-    },
-},
-    { _id: false }
-);
-
 const orderSchema = new mongoose.Schema({
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.ObjectId,
         ref: 'User',
-        required: true
+        required: [true, 'User ID is required']
     },
-    items: [orderItemSchema],
-    shippingAddress: {
-        address: {
-            type: String,
-            required: true
-        },
-        city: {
-            type: String,
-            required: true
-        },
-        postalCode: {
-            type: String,
-            required: true
-        },
-        country: {
-            type: String,
-            required: true
+    cartItems: [
+        {
+            product: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'Product',
+            },
+            quantity: Number,
+            color: String,
+            price: Number,
         }
-    },
-    paymentMethod: {
-        type: String,
-        required: true
-    },
-    paymentResult: {
-        id: String,
-        status: String,
-        update_time: String,
-        email_address: String
-    },
-    itemPrice: {
-        type: Number,
-        required: true
-    },
+    ],
     taxPrice: {
         type: Number,
-        required: true
+        default: 0,
+    },
+    shippingAddress: {
+        details: String,
+        phone: String,
+        city: String,
+        postalCode: String,
     },
     shippingPrice: {
         type: Number,
-        required: true
+        default: 0,
     },
-    totalPrice: {
+    totalOrderPrice: {
         type: Number,
-        required: true
+    },
+    paymentMethodType: {
+        type: String,
+        enum: ['card', 'cash'],
+        default: 'cash',
     },
     isPaid: {
         type: Boolean,
-        default: false
+        default: false,
     },
     paidAt: {
-        type: Date
+        type: Date,
     },
     isDelivered: {
         type: Boolean,
-        default: false
+        default: false,
     },
     deliveredAt: {
-        type: Date
+        type: Date,
     },
-}, { timestamps: true });
+}, { timestamps: true }
+)
 
-const Order = mongoose.model('Order', orderSchema);
+orderSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: 'user',
+        select: 'name profileImg email phone'
+    }).populate({
+        path: 'cartItems.product',
+        select: 'name imageCover'
+    });
 
-module.exports = Order;
+    next();
+})
+
+module.exports = mongoose.model('Order', orderSchema);
