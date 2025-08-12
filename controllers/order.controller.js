@@ -49,7 +49,6 @@ exports.createCashOrder = asyncWrapper(async (req, res, next) => {
     })
 })
 
-
 //@desc Get all orders
 //@route GET /api/orders
 //@access Protected/user-admin
@@ -59,5 +58,22 @@ exports.getAllOrders = asyncWrapper(async (req, res, next) => {
         status: SUCCESS,
         message: 'Orders retrieved successfully',
         data: orders
+    })
+});
+
+///@desc Get single order
+//@route GET /api/orders/:id
+//@access Protected/user-admin
+exports.getSingleOrder = asyncWrapper(async (req, res, next) => {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+        return next(AppError.create('Order not found', 404, FAIL));
+    }
+
+    res.status(200).json({
+        status: SUCCESS,
+        message: 'Order retrieved successfully',
+        data: order
     })
 });
