@@ -78,7 +78,9 @@ exports.getSingleOrder = asyncWrapper(async (req, res, next) => {
     })
 });
 
-
+//@desc Update order to paid
+//@route PUT /api/orders/:id/pay
+//@access Protected/user-admin
 exports.updateOrderToPaid = asyncWrapper(async (req, res, next) => {
     const order = await Order.findById(req.params.id);
 
@@ -93,6 +95,25 @@ exports.updateOrderToPaid = asyncWrapper(async (req, res, next) => {
     res.status(200).json({
         status: SUCCESS,
         message: 'Order updated to paid successfully',
+        data: updatedOrder
+    })
+})
+
+exports.updateOrderToDelivered = asyncWrapper(async (req, res, next) => {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+        return next(AppError.create('Order not found', 404, FAIL));
+    }
+
+    order.isDelivered = true;
+    order.deliveredAt = Date.now();
+
+    const updatedOrder = await order.save();
+    
+    res.status(200).json({
+        status: SUCCESS,
+        message: 'Order updated to delivered successfully',
         data: updatedOrder
     })
 })

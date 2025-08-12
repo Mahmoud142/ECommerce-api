@@ -4,7 +4,8 @@ const {
     createCashOrder,
     getAllOrders,
     getSingleOrder,
-    updateOrderToPaid
+    updateOrderToPaid,
+    updateOrderToDelivered
 } = require('../controllers/order.controller');
 
 const protect = require('../middlewares/protect.middleware');
@@ -19,5 +20,5 @@ router.route('/:id')
     .get(protect.auth, protect.allowedTo('user'), getSingleOrder)
 
 router.put('/:id/pay', protect.auth, updateOrderToPaid) // add admin protect later
-
+router.put('/:id/deliver', protect.auth, updateOrderToDelivered) // add admin protect later
 module.exports = router;
