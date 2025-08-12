@@ -75,6 +75,9 @@ exports.getAddress = asyncWrapper(async (req, res, next) => {
     });
 })
 
+//@desc Update an address for the logged user
+//@route put /api/addresses/:addressId
+//@access Private/User
 exports.updateAddress = asyncWrapper(async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const address = user.addresses.id(req.params.addressId);
