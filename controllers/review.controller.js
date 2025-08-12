@@ -11,6 +11,9 @@ exports.createFilterObject = (req, res, next) => {
     next();
 }
 
+//@desc Create a new review
+//@route POST /api/reviews
+//@access Private/user
 exports.createReview = asyncWrapper(async (req, res, next) => {
     const createdReview = await Review.create({
         review: req.body.review,
@@ -24,6 +27,9 @@ exports.createReview = asyncWrapper(async (req, res, next) => {
     });
 })
 
+//@desc Get all reviews
+//@route GET /api/reviews
+//@access public
 exports.getReviews = asyncWrapper(async (req, res, next) => {
     const reviews = await Review.find();
     res.status(200).json({
@@ -32,6 +38,9 @@ exports.getReviews = asyncWrapper(async (req, res, next) => {
     });
 })
 
+//@desc Get a single review
+//@route GET /api/reviews/:id
+//@access public
 exports.getReview = asyncWrapper(async (req, res, next) => {
     const review = await Review.findById(req.params.id);
     if (!review) {
@@ -46,6 +55,9 @@ exports.getReview = asyncWrapper(async (req, res, next) => {
     });
 })
 
+//desc Update a review
+//@route PUT /api/reviews/:id
+//@access Private/user
 exports.updateReview = asyncWrapper(async (req, res, next) => {
     const review = await Review.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
@@ -66,6 +78,9 @@ exports.updateReview = asyncWrapper(async (req, res, next) => {
     });
 })
 
+//@desc Delete a review
+//@route DELETE /api/reviews/:id
+//@access Private/user
 exports.deleteReview = asyncWrapper(async (req, res, next) => {
     const review = await Review.findByIdAndDelete(req.params.id);
     if (!review) {
