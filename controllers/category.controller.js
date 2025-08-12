@@ -6,6 +6,8 @@ const { uploadSingleImage } = require('../middlewares/imageUpload');
 
 const { v4: uuidv4 } = require('uuid');
 const sharp = require('sharp');
+
+
 // @desc    Upload a single image for category
 exports.uploadSingleImage = uploadSingleImage('image');
 // @desc    resize and save to uploads/categories
@@ -35,8 +37,6 @@ exports.getCategories = asyncWrapper(async (req, res, next) => {
     res.status(200).json({ status: SUCCESS, data: { categories } });
 });
 
-
-
 // @desc    Update a category
 // @route   PUT /api/categories/:id
 // @access  Private
@@ -58,7 +58,6 @@ exports.updateCategory = asyncWrapper(async (req, res, next) => {
 // @desc    Delete a category
 // @route   DELETE /api/categories/:id
 // @access  Private
-
 exports.deleteCategory = asyncWrapper(async (req, res, next) => {
     const category = await Category.findByIdAndDelete(req.params.id);
 
