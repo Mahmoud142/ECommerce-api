@@ -48,3 +48,16 @@ exports.createCashOrder = asyncWrapper(async (req, res, next) => {
         data: order
     })
 })
+
+
+//@desc Get all orders
+//@route GET /api/orders
+//@access Protected/user-admin
+exports.getAllOrders = asyncWrapper(async (req, res, next) => {
+    const orders = await Order.find();
+    res.status(200).json({
+        status: SUCCESS,
+        message: 'Orders retrieved successfully',
+        data: orders
+    })
+});
