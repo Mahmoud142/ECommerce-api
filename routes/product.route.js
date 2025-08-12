@@ -26,10 +26,5 @@ router.route('/:id')
     .get(getProductValidator, getProductById)
     .put(updateProductValidator, updateProduct)
     .delete(deleteProductValidator, deleteProduct);
-    
-router.route('/:id/reviews')
-    .post(createProductReview);
-
-
 
 module.exports = router;
