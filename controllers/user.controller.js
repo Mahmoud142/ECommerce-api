@@ -29,13 +29,19 @@ exports.createUser = asyncWrapper(async (req, res, next) => {
 //@route GET /api/users
 //@access Private/Admin
 exports.getAllUsers = asyncWrapper(async (req, res, next) => {
-    const users = await User.find({}).select('-password');
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 3;
+    const skip = (page - 1) * limit;
+
+    const users = await User.find({}).select('-password').skip(skip).limit(limit);
     if (!users) {
         const err = AppError.create('No users found', 404, FAIL);
         return next(err);
     }
     res.status(200).json({
         status: SUCCESS,
+        page,
+        length: users.length,
         message: 'Users fetched successfully',
         data: { users }
     });
