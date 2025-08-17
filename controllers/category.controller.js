@@ -33,8 +33,17 @@ exports.createCategory = asyncWrapper(async (req, res, next) => {
 // @route   GET /api/categories
 // @access  Public
 exports.getCategories = asyncWrapper(async (req, res, next) => {
-    const categories = await Category.find();
-    res.status(200).json({ status: SUCCESS, data: { categories } });
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const categories = await Category.find().skip(skip).limit(limit);
+    res.status(200).json({
+        status: SUCCESS,
+        length: categories.length,
+        page,
+        data: { categories },
+    });
 });
 
 // @desc    Update a category
