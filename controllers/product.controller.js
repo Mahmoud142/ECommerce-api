@@ -72,8 +72,18 @@ exports.createProduct = asyncWrapper(async (req, res, next) => {
 //@route GET /api/products
 //@access Public
 exports.getAllProducts = asyncWrapper(async (req, res, next) => {
-    const products = await Product.find({});
-    res.status(200).json({ status: SUCCESS, message: 'Products fetched successfully', data: { products: products } });
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const products = await Product.find({}).skip(skip).limit(limit);
+    res.status(200).json({
+        status: SUCCESS,
+        message: 'Products fetched successfully',
+        page: page,
+        length: products.length,
+        data: { products: products }
+    });
 });
 
 //@desc Get a single product by ID
