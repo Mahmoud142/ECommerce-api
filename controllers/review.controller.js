@@ -2,6 +2,7 @@ const Review = require('../models/review.model');
 const asyncWrapper = require('../middlewares/asyncWrapper');
 const { SUCCESS, FAIL } = require('../utils/httpStatusText');
 
+// used in review route
 exports.createFilterObject = (req, res, next) => {
     let filterObject = {};
     if (req.params.productId) {
@@ -31,10 +32,15 @@ exports.createReview = asyncWrapper(async (req, res, next) => {
 //@route GET /api/reviews
 //@access public
 exports.getReviews = asyncWrapper(async (req, res, next) => {
-    const reviews = await Review.find();
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const skip = (page - 1) * limit;
+    const reviews = await Review.find().skip(skip).limit(limit);
     res.status(200).json({
         status: SUCCESS,
-        data: reviews
+        page,
+        length: reviews.length,
+        data: reviews,
     });
 })
 
