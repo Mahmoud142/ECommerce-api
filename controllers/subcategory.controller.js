@@ -18,10 +18,15 @@ exports.createSubCategory = asyncWrapper(async (req, res, next) => {
 // @route GET /api/subcategories
 //@access Public
 exports.getAllSubCategories = asyncWrapper(async (req, res, next) => {
-    const subCategories = await SubCategory.find();
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const skip = (page - 1) * limit;
+    const subCategories = await SubCategory.find().skip(skip).limit(limit);
     return res.status(200).json({
         status: SUCCESS,
-        data: { subCategories }
+        page,
+        length: subCategories.length,
+        data: { subCategories },
     });
 })
 
