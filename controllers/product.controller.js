@@ -5,6 +5,7 @@ const asyncWrapper = require('../middlewares/asyncWrapper');
 const { v4: uuidv4 } = require('uuid');
 const sharp = require('sharp');
 const multer = require('multer');
+const { json } = require('body-parser');
 
 // Multer configuration for file uploads
 const multerStorage = multer.memoryStorage();
@@ -72,17 +73,55 @@ exports.createProduct = asyncWrapper(async (req, res, next) => {
 //@route GET /api/products
 //@access Public
 exports.getAllProducts = asyncWrapper(async (req, res, next) => {
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
-    const skip = (page - 1) * limit;
 
-    const products = await Product.find({}).skip(skip).limit(limit);
+
+    // filtering
+    const queryStringObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach(field => delete queryStringObj[field]);
+    // console.log('queryStringObj', queryStringObj);
+    let queryStr = JSON.stringify(queryStringObj);
+    
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|eq)\b/g, (match) => `$${match}`);
+
+    // Manual conversion of query params to filter object
+    const filterObj = {};
+    Object.keys(queryStringObj).forEach(key => {
+        // Check for operators in the value, e.g. price[lte]=45
+        if (typeof queryStringObj[key] === 'object') {
+            filterObj[key] = {};
+            Object.keys(queryStringObj[key]).forEach(op => {
+                filterObj[key][`$${op}`] = queryStringObj[key][op];
+            });
+        } else if (key.includes('[') && key.includes(']')) {
+            // For query like price[lte]=45
+            const field = key.split('[')[0];
+            const op = key.split('[')[1].replace(']', '');
+            if (!filterObj[field]) filterObj[field] = {};
+            filterObj[field][`$${op}`] = queryStringObj[key];
+        } else {
+            filterObj[key] = queryStringObj[key];
+        }
+    });
+
+    
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+    /*
+    { price: { $lt: 60 } }
+    */
+    const products = await Product.find(filterObj)
+        .skip(skip)
+        .limit(limit)
+        .populate({ path: 'category', select: 'name -_id' });
+
     res.status(200).json({
         status: SUCCESS,
         message: 'Products fetched successfully',
         page: page,
         length: products.length,
-        data: { products: products }
+        data: { products }
     });
 });
 
