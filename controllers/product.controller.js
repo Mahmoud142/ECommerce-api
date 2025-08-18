@@ -75,7 +75,7 @@ exports.createProduct = asyncWrapper(async (req, res, next) => {
 exports.getAllProducts = asyncWrapper(async (req, res, next) => {
 
 
-    // filtering
+    // @filtering
     const queryStringObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach(field => delete queryStringObj[field]);
@@ -104,17 +104,25 @@ exports.getAllProducts = asyncWrapper(async (req, res, next) => {
         }
     });
 
-    
+    // @ pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
-    /*
-    { price: { $lt: 60 } }
-    */
-    const products = await Product.find(filterObj)
+
+    const mongooseQuery = Product.find(filterObj)
         .skip(skip)
         .limit(limit)
         .populate({ path: 'category', select: 'name -_id' });
+
+    //@sorting
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ');
+        mongooseQuery.sort(sortBy);
+    } else {
+        mongooseQuery.sort('-createdAt'); // Default sorting by createdAt in descending order
+    }
+
+    const products = await mongooseQuery;
 
     res.status(200).json({
         status: SUCCESS,
