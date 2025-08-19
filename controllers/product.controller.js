@@ -104,7 +104,7 @@ exports.getAllProducts = asyncWrapper(async (req, res, next) => {
         }
     });
 
-    // @ pagination
+    // @pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
@@ -122,6 +122,12 @@ exports.getAllProducts = asyncWrapper(async (req, res, next) => {
         mongooseQuery.sort('-createdAt'); // Default sorting by createdAt in descending order
     }
 
+    //@Fields Limiting
+    if (req.query.fields) {
+        const fields = req.query.fields.split(',').join(' ');
+        mongooseQuery.select(fields);
+    }
+    
     const products = await mongooseQuery;
 
     res.status(200).json({
