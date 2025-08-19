@@ -75,26 +75,23 @@ exports.createProduct = asyncWrapper(async (req, res, next) => {
 exports.getAllProducts = asyncWrapper(async (req, res, next) => {
 
 
+
     // @filtering
     const queryStringObj = { ...req.query };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    const excludedFields = ['page', 'sort', 'limit', 'fields', 'search'];
     excludedFields.forEach(field => delete queryStringObj[field]);
-    // console.log('queryStringObj', queryStringObj);
     let queryStr = JSON.stringify(queryStringObj);
-    
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte|eq)\b/g, (match) => `$${match}`);
 
     // Manual conversion of query params to filter object
     const filterObj = {};
     Object.keys(queryStringObj).forEach(key => {
-        // Check for operators in the value, e.g. price[lte]=45
         if (typeof queryStringObj[key] === 'object') {
             filterObj[key] = {};
             Object.keys(queryStringObj[key]).forEach(op => {
                 filterObj[key][`$${op}`] = queryStringObj[key][op];
             });
         } else if (key.includes('[') && key.includes(']')) {
-            // For query like price[lte]=45
             const field = key.split('[')[0];
             const op = key.split('[')[1].replace(']', '');
             if (!filterObj[field]) filterObj[field] = {};
@@ -104,12 +101,21 @@ exports.getAllProducts = asyncWrapper(async (req, res, next) => {
         }
     });
 
+    //@Searching
+    if (req.query.search) {
+        const searchRegex = new RegExp(req.query.search, 'i');
+        filterObj.$or = [
+            { name: searchRegex },
+            { description: searchRegex }
+        ];
+    }
+
     // @pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const mongooseQuery = Product.find(filterObj)
+    let mongooseQuery = Product.find(filterObj)
         .skip(skip)
         .limit(limit)
         .populate({ path: 'category', select: 'name -_id' });
@@ -119,15 +125,18 @@ exports.getAllProducts = asyncWrapper(async (req, res, next) => {
         const sortBy = req.query.sort.split(',').join(' ');
         mongooseQuery.sort(sortBy);
     } else {
-        mongooseQuery.sort('-createdAt'); // Default sorting by createdAt in descending order
+        mongooseQuery.sort('-createdAt');
     }
 
     //@Fields Limiting
     if (req.query.fields) {
         const fields = req.query.fields.split(',').join(' ');
         mongooseQuery.select(fields);
+    } else {
+        mongooseQuery.select('-__v');
     }
-    
+
+    // Execute the query
     const products = await mongooseQuery;
 
     res.status(200).json({
