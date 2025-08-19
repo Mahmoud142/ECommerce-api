@@ -1,11 +1,13 @@
-const Product = require('../models/product.model');
-const { SUCCESS, FAIL } = require('../utils/httpStatusText');
-const AppError = require('../utils/appError');
-const asyncWrapper = require('../middlewares/asyncWrapper');
 const { v4: uuidv4 } = require('uuid');
 const sharp = require('sharp');
 const multer = require('multer');
-const { json } = require('body-parser');
+
+
+const Product = require('../models/product.model');
+const asyncWrapper = require('../middlewares/asyncWrapper');
+const AppError = require('../utils/appError');
+const ApiFeatures = require('../utils/apiFeatures');
+const { SUCCESS, FAIL } = require('../utils/httpStatusText');
 
 // Multer configuration for file uploads
 const multerStorage = multer.memoryStorage();
@@ -74,77 +76,24 @@ exports.createProduct = asyncWrapper(async (req, res, next) => {
 //@access Public
 exports.getAllProducts = asyncWrapper(async (req, res, next) => {
 
+    const noOfProducts = await Product.countDocuments();
 
+    const apiFeatures = new ApiFeatures(Product.find(), req.query)
+        .filter()
+        .search('Product')
+        .sort()
+        .limitFields()
+        .paginate(noOfProducts);
 
-    // @filtering
-    const queryStringObj = { ...req.query };
-    const excludedFields = ['page', 'sort', 'limit', 'fields', 'search'];
-    excludedFields.forEach(field => delete queryStringObj[field]);
-    let queryStr = JSON.stringify(queryStringObj);
-    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|eq)\b/g, (match) => `$${match}`);
-
-    // Manual conversion of query params to filter object
-    const filterObj = {};
-    Object.keys(queryStringObj).forEach(key => {
-        if (typeof queryStringObj[key] === 'object') {
-            filterObj[key] = {};
-            Object.keys(queryStringObj[key]).forEach(op => {
-                filterObj[key][`$${op}`] = queryStringObj[key][op];
-            });
-        } else if (key.includes('[') && key.includes(']')) {
-            const field = key.split('[')[0];
-            const op = key.split('[')[1].replace(']', '');
-            if (!filterObj[field]) filterObj[field] = {};
-            filterObj[field][`$${op}`] = queryStringObj[key];
-        } else {
-            filterObj[key] = queryStringObj[key];
-        }
-    });
-
-    //@Searching
-    if (req.query.search) {
-        const searchRegex = new RegExp(req.query.search, 'i');
-        filterObj.$or = [
-            { name: searchRegex },
-            { description: searchRegex }
-        ];
-    }
-
-    // @pagination
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const skip = (page - 1) * limit;
-
-    let mongooseQuery = Product.find(filterObj)
-        .skip(skip)
-        .limit(limit)
-        .populate({ path: 'category', select: 'name -_id' });
-
-    //@sorting
-    if (req.query.sort) {
-        const sortBy = req.query.sort.split(',').join(' ');
-        mongooseQuery.sort(sortBy);
-    } else {
-        mongooseQuery.sort('-createdAt');
-    }
-
-    //@Fields Limiting
-    if (req.query.fields) {
-        const fields = req.query.fields.split(',').join(' ');
-        mongooseQuery.select(fields);
-    } else {
-        mongooseQuery.select('-__v');
-    }
-
-    // Execute the query
+    const { mongooseQuery, paginationResult } = apiFeatures;
     const products = await mongooseQuery;
 
     res.status(200).json({
         status: SUCCESS,
         message: 'Products fetched successfully',
-        page: page,
-        length: products.length,
-        data: { products }
+        pagination: paginationResult,
+        results: products.length,
+        data: { products },
     });
 });
 
