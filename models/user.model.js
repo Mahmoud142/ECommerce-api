@@ -29,6 +29,18 @@ const userSchema = new mongoose.Schema({
     passwordResetcode: String,
     passwordResetExpires: Date,
     resetCodeVerified: Boolean,
+    twoFactorEnabled: {
+        type: Boolean,
+        default: false
+    },
+    twoFactorCode: String,
+    twoFactorExpires: Date,
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationCode: String,
+    emailVerificationExpires: Date,
     role: {
         type: String,
         enum: ['user', 'manager', 'admin'],
