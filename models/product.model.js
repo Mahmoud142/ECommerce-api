@@ -77,7 +77,30 @@ const productSchema = new mongoose.Schema(
     timestamps: true
     }
 )
-// product image hooks removed
+
+productSchema.set('toJSON', {
+    transform: function (doc, ret) {
+        if (ret.imageCover) {
+            const filename = ret.imageCover.split('/').pop();
+            if (process.env.CLOUDINARY_CLOUD_NAME) {
+                ret.imageCover = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/products/${filename}`;
+            } else {
+                ret.imageCover = `${process.env.BASE_URL}/uploads/products/${filename}`;
+            }
+        }
+        if (ret.images && ret.images.length > 0) {
+            ret.images = ret.images.map(image => {
+                const filename = image.split('/').pop();
+                if (process.env.CLOUDINARY_CLOUD_NAME) {
+                    return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/products/${filename}`;
+                } else {
+                    return `${process.env.BASE_URL}/uploads/products/${filename}`;
+                }
+            });
+        }
+        return ret;
+    }
+});
 
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;
