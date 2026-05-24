@@ -1,0 +1,514 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ECommerce API Documentation",
+    "description": "Comprehensive, interactive API documentation for the ECommerce platform backend. Built using Node.js, Express, MongoDB, Stripe, and Cloudinary. Supports JWT authentication and full CRUD capabilities.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Mahmoud Abdellah Support"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "phone": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "manager", "admin"] },
+          "profileImg": { "type": "string" },
+          "active": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "description": { "type": "string" },
+          "quantity": { "type": "number" },
+          "sold": { "type": "number" },
+          "price": { "type": "number" },
+          "priceAfterDiscount": { "type": "number" },
+          "availableColors": { "type": "array", "items": { "type": "string" } },
+          "imageCover": { "type": "string" },
+          "images": { "type": "array", "items": { "type": "string" } },
+          "category": { "type": "string" },
+          "ratingsAverage": { "type": "number" },
+          "ratingsQuantity": { "type": "number" }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "description": { "type": "string" },
+          "image": { "type": "string" }
+        }
+      },
+      "Brand": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "image": { "type": "string" }
+        }
+      },
+      "Cart": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "cartItems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "product": { "type": "string" },
+                "quantity": { "type": "number" },
+                "color": { "type": "string" },
+                "price": { "type": "number" }
+              }
+            }
+          },
+          "totalPrice": { "type": "number" },
+          "totalAfterDiscount": { "type": "number" }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "user": { "type": "string" },
+          "cartItems": { "type": "array", "items": { "type": "object" } },
+          "shippingAddress": { "type": "object" },
+          "shippingPrice": { "type": "number" },
+          "taxPrice": { "type": "number" },
+          "totalOrderPrice": { "type": "number" },
+          "paymentMethodType": { "type": "string", "enum": ["card", "cash"] },
+          "isPaid": { "type": "boolean" },
+          "isDelivered": { "type": "boolean" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "description": "Signs up a new user with optional profile photo (Cloudinary / local upload supported).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 8 },
+                  "phone": { "type": "string" },
+                  "profileImg": { "type": "string", "format": "binary" }
+                },
+                "required": ["name", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/User" },
+                    "token": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Log in an existing user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": { "$ref": "#/components/schemas/User" },
+                        "token": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get logged-in user profile",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/updateMe": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update logged-in user details",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "phone": { "type": "string" },
+                  "profileImg": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated profile"
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": ["Users (Admin)"],
+        "summary": "Get all users",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 3 } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      },
+      "post": {
+        "tags": ["Users (Admin)"],
+        "summary": "Create a new user by administrator",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "role": { "type": "string", "enum": ["user", "manager", "admin"] },
+                  "profileImg": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Successfully created user" }
+        }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "List all categories",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      },
+      "post": {
+        "tags": ["Categories (Admin)"],
+        "summary": "Create a new category",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "image": { "type": "string", "format": "binary" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Category created successfully" }
+        }
+      }
+    },
+    "/api/categories/{id}": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "Get a category by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "put": {
+        "tags": ["Categories (Admin)"],
+        "summary": "Update an existing category",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "image": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Category updated successfully" } }
+      },
+      "delete": {
+        "tags": ["Categories (Admin)"],
+        "summary": "Delete a category",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Category deleted successfully" } }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get/Query all products",
+        "description": "Supports advanced API features like sorting, filtering, searching, and pagination.",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "sort", "in": "query", "schema": { "type": "string" } },
+          { "name": "keyword", "in": "query", "schema": { "type": "string" } },
+          { "name": "price[gte]", "in": "query", "schema": { "type": "number" } },
+          { "name": "price[lte]", "in": "query", "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      },
+      "post": {
+        "tags": ["Products (Admin)"],
+        "summary": "Create a product",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "quantity": { "type": "integer" },
+                  "price": { "type": "number" },
+                  "category": { "type": "string" },
+                  "subCategory": { "type": "array", "items": { "type": "string" } },
+                  "imageCover": { "type": "string", "format": "binary" },
+                  "images": { "type": "array", "items": { "type": "string", "format": "binary" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Product created successfully" }
+        }
+      }
+    },
+    "/api/products/{id}": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get a product by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "put": {
+        "tags": ["Products (Admin)"],
+        "summary": "Update a product",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "price": { "type": "number" },
+                  "quantity": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Product updated successfully" } }
+      },
+      "delete": {
+        "tags": ["Products (Admin)"],
+        "summary": "Delete a product",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Product deleted successfully" } }
+      }
+    },
+    "/api/cart": {
+      "get": {
+        "tags": ["Cart"],
+        "summary": "Get active shopping cart",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": {
+        "tags": ["Cart"],
+        "summary": "Add item to shopping cart",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "productId": { "type": "string" },
+                  "color": { "type": "string" }
+                },
+                "required": ["productId"]
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Product added to cart successfully" } }
+      },
+      "delete": {
+        "tags": ["Cart"],
+        "summary": "Clear entire cart",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Cart cleared successfully" } }
+      }
+    },
+    "/api/orders/cash": {
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Create a cash order",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "shippingAddress": {
+                    "type": "object",
+                    "properties": {
+                      "details": { "type": "string" },
+                      "phone": { "type": "string" },
+                      "city": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Order created successfully" } }
+      }
+    },
+    "/api/orders/checkout-session/{cartId}": {
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Create interactive Stripe checkout session",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "cartId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Checkout session created successfully" } }
+      }
+    }
+  }
+}

@@ -30,15 +30,35 @@ exports.uploadProductImages = upload.fields([
 
 
 exports.resizeProductImages = asyncWrapper(async (req, res, next) => {
+    if (!req.files) return next();
+    
+    const isCloudinaryConfigured = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET;
 
     // 1) Image Process for imageCover
     if (req.files.imageCover) {
         const ext = req.files.imageCover[0].mimetype.split('/')[1];
         const imageCoverFilename = `products-${uuidv4()}-${Date.now()}-cover.${ext}`;
-        await sharp(req.files.imageCover[0].buffer)
-            .toFile(`uploads/products/${imageCoverFilename}`); // write into a file on the disk
+        
+        const processedBuffer = await sharp(req.files.imageCover[0].buffer)
+            .toFormat('jpeg')
+            .jpeg({ quality: 90 })
+            .toBuffer();
+
+        if (isCloudinaryConfigured) {
+            const { uploadStream } = require('../utils/cloudinary');
+            const publicId = imageCoverFilename.split('.')[0];
+            await uploadStream(processedBuffer, {
+                folder: 'products',
+                public_id: publicId
+            });
+        } else {
+            await sharp(processedBuffer).toFile(`uploads/products/${imageCoverFilename}`);
+        }
+        
+        // Always store clean filename in database to remain storage-independent
         req.body.imageCover = imageCoverFilename;
     }
+
     // product images array
     req.body.images = [];
     // 2- Image processing for images
@@ -47,8 +67,24 @@ exports.resizeProductImages = asyncWrapper(async (req, res, next) => {
             req.files.images.map(async (img, index) => {
                 const ext = img.mimetype.split('/')[1];
                 const filename = `products-${uuidv4()}-${Date.now()}-${index + 1}.${ext}`;
-                await sharp(img.buffer)
-                    .toFile(`uploads/products/${filename}`);
+                
+                const processedBuffer = await sharp(img.buffer)
+                    .toFormat('jpeg')
+                    .jpeg({ quality: 90 })
+                    .toBuffer();
+
+                if (isCloudinaryConfigured) {
+                    const { uploadStream } = require('../utils/cloudinary');
+                    const publicId = filename.split('.')[0];
+                    await uploadStream(processedBuffer, {
+                        folder: 'products',
+                        public_id: publicId
+                    });
+                } else {
+                    await sharp(processedBuffer).toFile(`uploads/products/${filename}`);
+                }
+                
+                // Always store clean filename in database to remain storage-independent
                 req.body.images.push(filename);
             })
         );

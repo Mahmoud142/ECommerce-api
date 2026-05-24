@@ -3,6 +3,43 @@ const bcrypt = require('bcrypt');
 const { SUCCESS, FAIL } = require('../utils/httpStatusText');
 const AppError = require('../utils/appError');
 const asyncWrapper = require('../middlewares/asyncWrapper');
+const { uploadSingleImage } = require('../middlewares/imageUpload');
+const { v4: uuidv4 } = require('uuid');
+const sharp = require('sharp');
+
+// @desc    Upload user profile image
+exports.uploadUserImage = uploadSingleImage('profileImg');
+
+// @desc    Resize and process user profile image (supports local disk or Cloudinary)
+exports.resizeUserImage = asyncWrapper(async (req, res, next) => {
+    if (!req.file) return next();
+    
+    const ext = req.file.mimetype.split('/')[1];
+    const filename = `user-${uuidv4()}-${Date.now()}.${ext}`;
+    
+    // Process buffer via sharp
+    const processedBuffer = await sharp(req.file.buffer)
+        .resize(600, 600)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toBuffer();
+        
+    // If Cloudinary is configured, upload to Cloudinary. Otherwise, write locally.
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+        const { uploadStream } = require('../utils/cloudinary');
+        const publicId = filename.split('.')[0];
+        await uploadStream(processedBuffer, {
+            folder: 'users',
+            public_id: publicId
+        });
+    } else {
+        await sharp(processedBuffer).toFile(`uploads/users/${filename}`);
+    }
+    
+    // Always store only the clean filename/id in the database to remain storage-independent
+    req.body.profileImg = filename;
+    next();
+});
 
 //@desc Create a new user
 //@route POST /api/users

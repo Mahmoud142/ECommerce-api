@@ -78,15 +78,22 @@ const productSchema = new mongoose.Schema(
     }
 )
 const setImageUrl = (doc) => {
-    if(doc.imageCover && !doc.imageCover.startsWith(`${process.env.BASE_URL}/uploads/products/`)) {
-        doc.imageCover = `${process.env.BASE_URL}/uploads/products/${doc.imageCover}`;
+    if (doc.imageCover) {
+        const filename = doc.imageCover.split('/').pop();
+        if (process.env.CLOUDINARY_CLOUD_NAME) {
+            doc.imageCover = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/products/${filename}`;
+        } else {
+            doc.imageCover = `${process.env.BASE_URL}/uploads/products/${filename}`;
+        }
     }
-    if(doc.images && doc.images.length > 0) {
+    if (doc.images && doc.images.length > 0) {
         doc.images = doc.images.map(image => {
-            if(!image.startsWith(`${process.env.BASE_URL}/uploads/products/`)) {
-                return `${process.env.BASE_URL}/uploads/products/${image}`;
+            const filename = image.split('/').pop();
+            if (process.env.CLOUDINARY_CLOUD_NAME) {
+                return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/products/${filename}`;
+            } else {
+                return `${process.env.BASE_URL}/uploads/products/${filename}`;
             }
-            return image;
         });
     }
 }

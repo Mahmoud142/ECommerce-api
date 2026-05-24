@@ -23,9 +23,13 @@ const categorySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const setImageUrl = (doc) => {
-    if (doc.image && !doc.image.startsWith(`${process.env.BASE_URL}/uploads/categories/`)) {
-
-        doc.image = `${process.env.BASE_URL}/uploads/categories/${doc.image}`;
+    if (doc.image) {
+        const filename = doc.image.split('/').pop();
+        if (process.env.CLOUDINARY_CLOUD_NAME) {
+            doc.image = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/categories/${filename}`;
+        } else {
+            doc.image = `${process.env.BASE_URL}/uploads/categories/${filename}`;
+        }
     }
 };
 

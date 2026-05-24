@@ -16,8 +16,24 @@ exports.resizeImage = asyncWrapper(async (req, res, next) => {
     
     const ext = req.file.mimetype.split('/')[1];
     const filename = `category-${uuidv4()}-${Date.now()}.${ext}`;
-    // write into a file on the disk
-    await sharp(req.file.buffer).toFile(`uploads/categories/${filename}`); 
+    
+    const processedBuffer = await sharp(req.file.buffer)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+        const { uploadStream } = require('../utils/cloudinary');
+        const publicId = filename.split('.')[0];
+        await uploadStream(processedBuffer, {
+            folder: 'categories',
+            public_id: publicId
+        });
+    } else {
+        await sharp(processedBuffer).toFile(`uploads/categories/${filename}`); 
+    }
+    
+    // Always store only the clean filename/id in the database to remain storage-independent
     req.body.image = filename;
     next();
 });
