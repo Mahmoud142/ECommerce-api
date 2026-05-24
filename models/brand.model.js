@@ -18,8 +18,13 @@ const brandSchema = new mongoose.Schema({
 
 
 const setImageUrl = (doc) => {
-    if (doc.image && !doc.image.startsWith(`${process.env.BASE_URL}/uploads/brands/`)) {
-        doc.image = `${process.env.BASE_URL}/uploads/brands/${doc.image}`;
+    if (doc.image) {
+        const filename = doc.image.split('/').pop();
+        if (process.env.CLOUDINARY_CLOUD_NAME) {
+            doc.image = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/brands/${filename}`;
+        } else {
+            doc.image = `${process.env.BASE_URL}/uploads/brands/${filename}`;
+        }
     }
 }
 
