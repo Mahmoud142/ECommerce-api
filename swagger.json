@@ -137,14 +137,14 @@
         },
         "responses": {
           "201": {
-            "description": "User created successfully",
+            "description": "User created successfully. Verification code sent to email.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/User" },
-                    "token": { "type": "string" }
+                    "status": { "type": "string" },
+                    "message": { "type": "string" }
                   }
                 }
               }
@@ -197,10 +197,183 @@
         }
       }
     },
-    "/api/users/me": {
+    "/api/auth/verifyEmail": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Verify registration email verification code and receive JWT authentication token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "verificationCode": { "type": "string", "maxLength": 6, "minLength": 6 }
+                },
+                "required": ["email", "verificationCode"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": { "$ref": "#/components/schemas/User" },
+                        "token": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/forgotPassword": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Request a password reset email (SendGrid)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Reset code successfully sent to email" }
+        }
+      }
+    },
+    "/api/auth/verifyResetCode": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Verify the 6-digit password reset verification code",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resetCode": { "type": "string", "maxLength": 6, "minLength": 6 }
+                },
+                "required": ["resetCode"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification code verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "resetToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/resetPassword": {
+      "put": {
+        "tags": ["Authentication"],
+        "summary": "Reset the account password with a new one",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "resetToken": { "type": "string" },
+                  "newPassword": { "type": "string", "minLength": 8 }
+                },
+                "required": ["email", "resetToken", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Password reset successfully" }
+        }
+      }
+    },
+    "/api/auth/verify2fa": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Verify 6-digit 2FA login code and receive JWT authentication token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "twoFactorCode": { "type": "string", "maxLength": 6, "minLength": 6 }
+                },
+                "required": ["email", "twoFactorCode"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "2FA verification successful. User logged in." }
+        }
+      }
+    },
+    "/api/auth/enable2fa": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Enable Two-Factor Authentication (2FA) for your account",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Two-factor authentication has been successfully enabled" }
+        }
+      }
+    },
+    "/api/auth/disable2fa": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Disable Two-Factor Authentication (2FA) for your account",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Two-factor authentication has been successfully disabled" }
+        }
+      }
+    },
+    "/api/users/getMe": {
       "get": {
         "tags": ["Users"],
-        "summary": "Get logged-in user profile",
+        "summary": "Get logged-in user profile details",
         "security": [{ "bearerAuth": [] }],
         "responses": {
           "200": {
@@ -217,6 +390,41 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/users/changeMyPassword": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Change logged-in user password",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": { "type": "string", "minLength": 8 },
+                  "confirmPassword": { "type": "string" }
+                },
+                "required": ["password", "confirmPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Password updated successfully" }
+        }
+      }
+    },
+    "/api/users/deleteMe": {
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Deactivate/Delete logged-in user profile",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "204": { "description": "User deleted successfully" }
         }
       }
     },
@@ -284,6 +492,72 @@
         },
         "responses": {
           "201": { "description": "Successfully created user" }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "tags": ["Users (Admin)"],
+        "summary": "Get user by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "put": {
+        "tags": ["Users (Admin)"],
+        "summary": "Update user details by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "role": { "type": "string", "enum": ["user", "manager", "admin"] },
+                  "profileImg": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "User updated successfully" } }
+      },
+      "delete": {
+        "tags": ["Users (Admin)"],
+        "summary": "Delete a user by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "User deleted successfully" } }
+      }
+    },
+    "/api/users/change-password/{id}": {
+      "put": {
+        "tags": ["Users (Admin)"],
+        "summary": "Change password for any user by admin",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": { "type": "string", "minLength": 8 }
+                },
+                "required": ["password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User password updated successfully by administrator" }
         }
       }
     },
