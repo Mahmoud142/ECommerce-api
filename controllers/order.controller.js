@@ -1,7 +1,8 @@
 const Product = require('../models/product.model');
 const Cart = require('../models/cart.model');
 const Order = require('../models/order.model');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeKey ? require('stripe')(stripeKey) : null;
 
 const AppError = require('../utils/appError');
 const { SUCCESS, FAIL } = require('../utils/httpStatusText');
@@ -128,6 +129,9 @@ exports.updateOrderToDelivered = asyncWrapper(async (req, res, next) => {
 //@route POST /api/orders/checkout-session/:cartId
 //@access Protected/User
 exports.checkoutSession = asyncWrapper(async (req, res, next) => {
+    if (!stripe) {
+        return next(AppError.create('Stripe is not configured on this server. Please add a valid STRIPE_SECRET_KEY in your .env file.', 500, FAIL));
+    }
     
     const taxPrice = 0;
     const shippingPrice = 0;
@@ -204,6 +208,10 @@ const createCardOrder = async (session) => {
 //@route POST /api/orders/webhook-checkout
 //@access Protected/User
 exports.webhookCheckout = asyncWrapper(async (req, res, next) => {
+    if (!stripe) {
+        return next(AppError.create('Stripe is not configured on this server. Please add a valid STRIPE_SECRET_KEY in your .env file.', 500, FAIL));
+    }
+
     const sig = req.headers['stripe-signature'];
 
     let event;
