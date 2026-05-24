@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const protect = require('../middlewares/protect.middleware.js')
+const protect = require('../middlewares/protect.middleware.js');
 const {
     createUser,
     getAllUsers,
@@ -12,8 +12,9 @@ const {
     updateLoggedUserData,
     getLoggedUserData,
     deleteLoggedUser,
-    updateLoggedUserPassword
-
+    updateLoggedUserPassword,
+    uploadUserImage,
+    resizeUserImage
 } = require('../controllers/user.controller');
 
 const {
@@ -29,18 +30,18 @@ const {
 // User routes
 router.get('/getMe', protect.auth, getLoggedUserData);
 router.put('/changeMyPassword', protect.auth, changeLoggedUserPasswordValidator, updateLoggedUserPassword);
-router.put('/updateMe', protect.auth, updateLoggedUserValidator, updateLoggedUserData);
+router.put('/updateMe', protect.auth, uploadUserImage, resizeUserImage, updateLoggedUserValidator, updateLoggedUserData);
 router.delete('/deleteMe', protect.auth, deleteLoggedUser);
 
 //Admin routes
 router.route('/')
     .get(protect.auth, protect.allowedTo('admin'), getAllUsers)
-    .post(protect.auth, protect.allowedTo('admin'), createUserValidator, createUser);
+    .post(protect.auth, protect.allowedTo('admin'), uploadUserImage, resizeUserImage, createUserValidator, createUser);
 
 router.route('/:id')
     .get(protect.auth, protect.allowedTo('admin'), getUserValidator, getUser)
     .delete(protect.auth, protect.allowedTo('admin'), deleteUserValidator, deleteUser)
-    .put(protect.auth, protect.allowedTo('admin'), updateUserValidator, updateUser);
+    .put(protect.auth, protect.allowedTo('admin'), uploadUserImage, resizeUserImage, updateUserValidator, updateUser);
 
 
 router.put('/change-password/:id',
