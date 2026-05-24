@@ -80,7 +80,22 @@ userSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
 });
-// pre-save password hash middleware stays here
+
+// toJSON transform dynamically appends base URL only when returning data to the client, leaving DB clean
+userSchema.set('toJSON', {
+    transform: function (doc, ret) {
+        if (ret.profileImg) {
+            const filename = ret.profileImg.split('/').pop();
+            if (process.env.CLOUDINARY_CLOUD_NAME) {
+                ret.profileImg = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/users/${filename}`;
+            } else {
+                ret.profileImg = `${process.env.BASE_URL}/uploads/users/${filename}`;
+            }
+        }
+        delete ret.password;
+        return ret;
+    }
+});
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
