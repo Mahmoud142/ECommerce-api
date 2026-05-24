@@ -14,28 +14,7 @@ const brandSchema = new mongoose.Schema({
     },
     image: { type: String }
 }, { timestamps: true });
-
-
-
-const setImageUrl = (doc) => {
-    if (doc.image) {
-        const filename = doc.image.split('/').pop();
-        if (process.env.CLOUDINARY_CLOUD_NAME) {
-            doc.image = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/brands/${filename}`;
-        } else {
-            doc.image = `${process.env.BASE_URL}/uploads/brands/${filename}`;
-        }
-    }
-}
-
-
-brandSchema.post('init', (doc) => {
-    setImageUrl(doc);
-})
-
-brandSchema.post('save', (doc) => {
-    setImageUrl(doc);
-})
+// brand image hooks removed
 
 const Brand = mongoose.model('Brand', brandSchema);
 module.exports = Brand;
