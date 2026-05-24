@@ -14,7 +14,20 @@ const brandSchema = new mongoose.Schema({
     },
     image: { type: String }
 }, { timestamps: true });
-// brand image hooks removed
+
+brandSchema.set('toJSON', {
+    transform: function (doc, ret) {
+        if (ret.image) {
+            const filename = ret.image.split('/').pop();
+            if (process.env.CLOUDINARY_CLOUD_NAME) {
+                ret.image = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/brands/${filename}`;
+            } else {
+                ret.image = `${process.env.BASE_URL}/uploads/brands/${filename}`;
+            }
+        }
+        return ret;
+    }
+});
 
 const Brand = mongoose.model('Brand', brandSchema);
 module.exports = Brand;
