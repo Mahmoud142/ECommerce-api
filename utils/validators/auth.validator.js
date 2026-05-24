@@ -50,3 +50,46 @@ exports.registerValidator = [
         .isMobilePhone().withMessage('Invalid phone number format'),
     validatorMiddleware
 ]
+
+exports.forgotPasswordValidator = [
+    check('email')
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format'),
+    validatorMiddleware
+]
+
+exports.verifyPassResetCodeValidator = [
+    check('resetCode')
+        .notEmpty().withMessage('Reset code is required'),
+    validatorMiddleware
+]
+
+exports.resetPasswordValidator = [
+    check('email')
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format'),
+    check('resetToken')
+        .notEmpty().withMessage('Reset token is required'),
+    check('newPassword')
+        .notEmpty().withMessage('New password is required')
+        .isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+    validatorMiddleware
+]
+
+exports.verify2FAValidator = [
+    check('email')
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format'),
+    check('twoFactorCode')
+        .notEmpty().withMessage('Two-factor code is required'),
+    validatorMiddleware
+]
+
+exports.verifyEmailValidator = [
+    check('email')
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format'),
+    check('verificationCode')
+        .notEmpty().withMessage('Verification code is required'),
+    validatorMiddleware
+]
