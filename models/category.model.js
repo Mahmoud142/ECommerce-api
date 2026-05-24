@@ -21,7 +21,20 @@ const categorySchema = new mongoose.Schema({
     image: String,
 
 }, { timestamps: true });
-// category image hooks removed
+
+categorySchema.set('toJSON', {
+    transform: function (doc, ret) {
+        if (ret.image) {
+            const filename = ret.image.split('/').pop();
+            if (process.env.CLOUDINARY_CLOUD_NAME) {
+                ret.image = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/categories/${filename}`;
+            } else {
+                ret.image = `${process.env.BASE_URL}/uploads/categories/${filename}`;
+            }
+        }
+        return ret;
+    }
+});
 
 const Category = mongoose.model('Category', categorySchema);
 
