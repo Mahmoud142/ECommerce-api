@@ -80,27 +80,7 @@ userSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
 });
-
-
-
-const setImageUrl = (doc) => {
-    if (doc.profileImg) {
-        const filename = doc.profileImg.split('/').pop();
-        if (process.env.CLOUDINARY_CLOUD_NAME) {
-            doc.profileImg = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/users/${filename}`;
-        } else {
-            doc.profileImg = `${process.env.BASE_URL}/uploads/users/${filename}`;
-        }
-    }
-};
-
-userSchema.post('init', (doc) => {
-    setImageUrl(doc);
-});
-
-userSchema.post('save', (doc) => {
-    setImageUrl(doc);
-});
+// pre-save password hash middleware stays here
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
