@@ -66,8 +66,8 @@ exports.createUser = asyncWrapper(async (req, res, next) => {
 //@route GET /api/users
 //@access Private/Admin
 exports.getAllUsers = asyncWrapper(async (req, res, next) => {
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 3;
+    const page = (req.query.page && req.query.page !== 'undefined') ? parseInt(req.query.page, 10) : 1;
+    const limit = (req.query.limit && req.query.limit !== 'undefined') ? parseInt(req.query.limit, 10) : 3;
     const skip = (page - 1) * limit;
 
     const users = await User.find({}).select('-password').skip(skip).limit(limit);
