@@ -97,6 +97,9 @@ exports.resizeProductImages = asyncWrapper(async (req, res, next) => {
 //@route POST /api/products
 //@access Private/Admin
 exports.createProduct = asyncWrapper(async (req, res, next) => {
+    if (req.body.subcategory && !req.body.subCategory) {
+        req.body.subCategory = req.body.subcategory;
+    }
     const product = new Product(req.body);
     // console.log('req.body', req.body);
     const createdProduct = await product.save();
@@ -129,7 +132,7 @@ exports.getAllProducts = asyncWrapper(async (req, res, next) => {
         message: 'Products fetched successfully',
         pagination: paginationResult,
         results: products.length,
-        data: { products },
+        data: products,
     });
 });
 
@@ -146,13 +149,16 @@ exports.getProductById = asyncWrapper(async (req, res, next) => {
         const err = AppError.create('Product not found', 404, FAIL);
         return next(err);
     }
-    res.status(200).json({ status: SUCCESS, message: 'Product fetched successfully', data: { product: product } });
+    res.status(200).json({ status: SUCCESS, message: 'Product fetched successfully', data: product });
 });
 
 //@desc Update a product
 //@route PUT /api/products/:id
 //@access Private/Admin
 exports.updateProduct = asyncWrapper(async (req, res, next) => {
+    if (req.body.subcategory && !req.body.subCategory) {
+        req.body.subCategory = req.body.subcategory;
+    }
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true
