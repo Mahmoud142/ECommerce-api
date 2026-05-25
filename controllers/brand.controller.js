@@ -55,7 +55,7 @@ exports.getAllBrands = asyncWrapper(async (req, res,next) => {
     res.status(200).json({
         status: SUCCESS,
         message: 'Brands retrieved successfully',
-        data: {brands}
+        data: brands
     });
 })
 
