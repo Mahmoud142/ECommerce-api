@@ -25,14 +25,14 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// const rateLimit = require('express-rate-limit');
-// // Apply rate limiter to all API routes
-// const limiter = rateLimit({
-//     windowMs: 15 * 60 * 1000, // 15 minutes
-//     limit: 100, // Limit each IP to 100 requests per window
-//     message: { status: 'fail', message: 'Too many requests from this IP, please try again after 15 minutes' }
-// });
-// app.use('/api', limiter);
+const rateLimit = require('express-rate-limit');
+// Apply rate limiter to all API routes
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per window
+    message: { status: 'fail', message: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use('/api', limiter);
 
 
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
