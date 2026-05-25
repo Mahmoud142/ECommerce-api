@@ -7,9 +7,16 @@ app.use(cors());
 const PORT = process.env.PORT || 3000;
 const morgan = require('morgan');
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
+app.use((req, res, next) => {
+  console.log(`[Request] ${req.method} ${req.url}`);
+  next();
+});
+
+app.use(morgan('dev', {
+  stream: {
+    write: (message) => console.log(message.trim())
+  }
+}));
 
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -17,6 +24,15 @@ app.use(cookieParser());
 // parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// const rateLimit = require('express-rate-limit');
+// // Apply rate limiter to all API routes
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     limit: 100, // Limit each IP to 100 requests per window
+//     message: { status: 'fail', message: 'Too many requests from this IP, please try again after 15 minutes' }
+// });
+// app.use('/api', limiter);
 
 
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -50,6 +66,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/products', productRoutes);
+const reviewRouteNested = require('./routes/review.route');
+app.use('/api/products/:productId/reviews', reviewRouteNested);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/wishlist', wishlistRoutes);
