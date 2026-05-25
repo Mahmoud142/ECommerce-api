@@ -26,7 +26,7 @@ router.route('/')
 
 router.route('/:id')
     .get(getProductValidator, getProductById)
-    .put(protect.auth, protect.allowedTo('admin', 'manager'), updateProductValidator, updateProduct)
+    .put(protect.auth, protect.allowedTo('admin', 'manager'), uploadProductImages, resizeProductImages, updateProductValidator, updateProduct)
     .delete(protect.auth, protect.allowedTo('admin'), deleteProductValidator, deleteProduct);
 
 module.exports = router;

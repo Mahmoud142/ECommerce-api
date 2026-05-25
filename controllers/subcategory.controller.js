@@ -21,7 +21,15 @@ exports.getAllSubCategories = asyncWrapper(async (req, res, next) => {
     const page = (req.query.page && req.query.page !== 'undefined') ? parseInt(req.query.page, 10) : 1;
     const limit = (req.query.limit && req.query.limit !== 'undefined') ? parseInt(req.query.limit, 10) : 10;
     const skip = (page - 1) * limit;
-    const subCategories = await SubCategory.find().skip(skip).limit(limit);
+
+    let filterObject = {};
+    if (req.params.categoryId) {
+        filterObject = { category: req.params.categoryId };
+    } else if (req.query.category) {
+        filterObject = { category: req.query.category };
+    }
+
+    const subCategories = await SubCategory.find(filterObject).skip(skip).limit(limit);
     return res.status(200).json({
         status: SUCCESS,
         page,

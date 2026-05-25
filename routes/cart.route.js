@@ -14,20 +14,20 @@ const protect = require("../middlewares/protect.middleware");
 
 router
     .route("/")
-    .post(protect.auth, protect.allowedTo("user"), addProductToCart)
-    .get(protect.auth, protect.allowedTo("user"), getLoggedUserCart);
+    .post(protect.auth, protect.allowedTo("user", "admin", "manager"), addProductToCart)
+    .get(protect.auth, protect.allowedTo("user", "admin", "manager"), getLoggedUserCart);
 
 router
     .route("/applyCoupon")
-    .put(protect.auth, protect.allowedTo("user"), applyCouponToCart);
+    .put(protect.auth, protect.allowedTo("user", "admin", "manager"), applyCouponToCart);
 
 router
     .route("/:productId")
-    .put(protect.auth, protect.allowedTo("user"), updateCartProductQuantity)
-    .delete(protect.auth, protect.allowedTo("user"), deleteProductFromCart);
+    .put(protect.auth, protect.allowedTo("user", "admin", "manager"), updateCartProductQuantity)
+    .delete(protect.auth, protect.allowedTo("user", "admin", "manager"), deleteProductFromCart);
 
 router
     .route("/") // clear all cart items
-    .delete(protect.auth, protect.allowedTo("user"), clearLoggedUserCart);
+    .delete(protect.auth, protect.allowedTo("user", "admin", "manager"), clearLoggedUserCart);
 
 module.exports = router;

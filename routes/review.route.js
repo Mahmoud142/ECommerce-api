@@ -25,11 +25,11 @@ const router = express.Router({ mergeParams: true });
 
 router.route('/')
     .get(createFilterObject, getReviews)
-    .post(protect.auth, protect.allowedTo('user'),createReviewValidator, createReview);
+    .post(protect.auth, protect.allowedTo('user', 'admin', 'manager'),createReviewValidator, createReview);
 
 router.route('/:id')
     .get(getReviewValidator, getReview)
-    .put(protect.auth, protect.allowedTo('user'), updateReviewValidator, updateReview)
+    .put(protect.auth, protect.allowedTo('user', 'admin', 'manager'), updateReviewValidator, updateReview)
     .delete(protect.auth, protect.allowedTo('user','manager','admin'), deleteReviewValidator, deleteReview);
 
 

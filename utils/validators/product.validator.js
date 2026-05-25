@@ -8,15 +8,14 @@ const {validatorMiddleware} = require('../../middlewares/validator.middleware');
 exports.createProductValidator = [
     check('name')
         .notEmpty().withMessage('Product title is required')
-        .isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters long')
+        .isLength({ min: 3 }).withMessage('Title must be at least 3 characters long')
         .custom((value, { req }) => {
             req.body.slug = slugify(value)
             return true;
         }),
     
     check('description')
-        .notEmpty().withMessage('Product description is required')
-        .isLength({ max: 1500 }).withMessage('Too long description'),
+        .notEmpty().withMessage('Product description is required'),
     
     check('quantity')
         .notEmpty().withMessage('Product quantity is required')
@@ -115,10 +114,56 @@ exports.updateProductValidator = [
     check('name')
         .optional()
         .notEmpty().withMessage('Product title is required')
-        .isLength({ max: 100 }).withMessage('Too long title')
         .custom((value, { req }) => {
             req.body.slug = slugify(value);
+            return true;
         }),
+    check('description')
+        .optional()
+        .notEmpty().withMessage('Product description is required'),
+    check('quantity')
+        .optional()
+        .isNumeric().withMessage('Quantity must be a number')
+        .isInt({ min: 0 }).withMessage('Quantity cannot be negative'),
+    check('sold')
+        .optional()
+        .isNumeric().withMessage('Sold must be a number')
+        .isInt({ min: 0 }).withMessage('Sold cannot be negative'),
+    check('price')
+        .optional()
+        .isNumeric().withMessage('Price must be a number')
+        .isFloat({ min: 0 }).withMessage('Price must be a positive number'),
+    check('priceAfterDiscount')
+        .optional()
+        .isNumeric().withMessage('Price after discount must be a number')
+        .isFloat({ min: 0 }).withMessage('Price after discount must be a positive number')
+        .custom((value, { req }) => {
+            if (value && value >= req.body.price) {
+                throw new Error('Price after discount must be less than the original price');
+            }
+            return true;
+        }),
+    check('availableColors')
+        .optional()
+        .toArray(),
+    check('images')
+        .optional()
+        .toArray(),
+    check('category')
+        .optional()
+        .isMongoId().withMessage('Invalid category ID')
+        .custom((categoryId) => {
+            return Category.findById(categoryId).then(category => {
+                if (!category) {
+                    return Promise.reject(new Error(`Category with ID ${categoryId} does not exist`));
+                }
+                return true;
+            })
+        }),
+    check('subcategory')
+        .optional()
+        .toArray()
+        .isMongoId().withMessage('Invalid subcategory ID'),
     validatorMiddleware
 ]
 
