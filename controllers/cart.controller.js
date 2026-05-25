@@ -66,13 +66,17 @@ exports.getLoggedUserCart = asyncWrapper(async (req, res, next) => {
     const cart = await Cart.findOne({ user: req.user._id });
     
     if (!cart) {
-        return next(AppError.create('Cart not found', 404, FAIL));
+        return res.status(200).json({
+            status: SUCCESS,
+            numberOfItems: 0,
+            data: { products: [], totalCartPrice: 0 }
+        });
     }
 
     return res.status(200).json({
         status: SUCCESS,
         numberOfItems: cart.products.length,
-        data: { cart }
+        data: cart
     });
 });
 
@@ -96,7 +100,7 @@ exports.deleteProductFromCart = asyncWrapper(async (req, res, next) => {
         status: SUCCESS,
         numberOfItems: cart.products.length,
         message: 'Product removed from cart successfully',
-        data: { cart }
+        data: cart
     });
 })
 
@@ -142,7 +146,7 @@ exports.updateCartProductQuantity = asyncWrapper(async (req, res, next) => {
         status: SUCCESS,
         numberOfItems: cart.products.length,
         message: 'Cart updated successfully',
-        data: { cart }
+        data: cart
     })
 })
 
@@ -175,7 +179,7 @@ exports.applyCouponToCart = asyncWrapper(async (req, res, next) => {
         status: SUCCESS,
         numberOfItems: cart.products.length,
         message: 'Coupon applied successfully',
-        data: { cart }
+        data: cart
     });
 });
 
