@@ -11,7 +11,7 @@ exports.createCategoryValidator = [
         .isLength({ min: 3, max: 50 })
         .withMessage("Name must be between 3 and 50 characters long")
         .custom((value, { req }) => {
-            req.body.name = slugify(value);
+            req.body.slug = slugify(value);
             return true;
         }),
     validatorMiddleware
