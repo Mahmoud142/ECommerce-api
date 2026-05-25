@@ -17,12 +17,14 @@ const {
     deleteBrandValidator
 } = require('../utils/validators/brand.validator');
 
+const protect = require('../middlewares/protect.middleware');
+
 router.route('/')
-    .post(uploadBrandImage, resizeImage, createBrandValidator, createBrand)
+    .post(protect.auth, protect.allowedTo('admin', 'manager'), uploadBrandImage, resizeImage, createBrandValidator, createBrand)
     .get(getAllBrands);
 router.route('/:id')
     .get(getBrandValidator, getBrandById)
-    .put(updateBrandValidator, updateBrand)
-    .delete(deleteBrandValidator, deleteBrand);
+    .put(protect.auth, protect.allowedTo('admin', 'manager'), updateBrandValidator, updateBrand)
+    .delete(protect.auth, protect.allowedTo('admin'), deleteBrandValidator, deleteBrand);
 
 module.exports = router;
