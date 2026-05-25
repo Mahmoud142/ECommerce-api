@@ -98,6 +98,7 @@ productSchema.set('toJSON', {
                 }
             });
         }
+        ret.title = ret.name;
         return ret;
     }
 });

@@ -49,8 +49,8 @@ exports.createCategory = asyncWrapper(async (req, res, next) => {
 // @route   GET /api/categories
 // @access  Public
 exports.getCategories = asyncWrapper(async (req, res, next) => {
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
+    const page = (req.query.page && req.query.page !== 'undefined') ? parseInt(req.query.page, 10) : 1;
+    const limit = (req.query.limit && req.query.limit !== 'undefined') ? parseInt(req.query.limit, 10) : 10;
     const skip = (page - 1) * limit;
 
     const categories = await Category.find().skip(skip).limit(limit);
@@ -58,7 +58,7 @@ exports.getCategories = asyncWrapper(async (req, res, next) => {
         status: SUCCESS,
         length: categories.length,
         page,
-        data: { categories },
+        data: categories,
     });
 });
 
@@ -103,5 +103,5 @@ exports.getCategoryById = asyncWrapper(async (req, res, next) => {
         return next(AppError.create(`No category found with ID: ${req.params.id}`, 404, FAIL));
     }
 
-    res.status(200).json({ status: SUCCESS, data: { category } });
+    res.status(200).json({ status: SUCCESS, data: category });
 });

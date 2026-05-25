@@ -7,14 +7,14 @@ const {
     updateCoupon,
     deleteCoupon
 } = require('../controllers/coupon.controller');
-// const protect = require('../middlewares/protect.middleware');
+const protect = require('../middlewares/protect.middleware');
 
 router.route('/')
-    .post(createCoupon)
-    .get(getAllCoupons);
+    .post(protect.auth, protect.allowedTo('admin', 'manager'), createCoupon)
+    .get(protect.auth, protect.allowedTo('admin', 'manager'), getAllCoupons);
 router.route('/:id')
-    .get(getCoupon)
-    .put(updateCoupon)
-    .delete(deleteCoupon);
+    .get(protect.auth, protect.allowedTo('admin', 'manager'), getCoupon)
+    .put(protect.auth, protect.allowedTo('admin', 'manager'), updateCoupon)
+    .delete(protect.auth, protect.allowedTo('admin', 'manager'), deleteCoupon);
 
 module.exports = router;

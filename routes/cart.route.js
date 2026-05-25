@@ -1,7 +1,5 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-
-
 
 const {
     addProductToCart,
@@ -9,23 +7,27 @@ const {
     updateCartProductQuantity,
     deleteProductFromCart,
     clearLoggedUserCart,
-    applyCouponToCart
-} = require('../controllers/cart.controller');
+    applyCouponToCart,
+} = require("../controllers/cart.controller");
 
-const { auth } = require('../middlewares/protect.middleware');
+const protect = require("../middlewares/protect.middleware");
 
-router.route('/')
-    .post(auth, addProductToCart)
-    .get(auth, getLoggedUserCart);
+router
+    .route("/")
+    .post(protect.auth, protect.allowedTo("user"), addProductToCart)
+    .get(protect.auth, protect.allowedTo("user"), getLoggedUserCart);
 
-router.route('/applyCoupon')
-    .put(auth, applyCouponToCart);
+router
+    .route("/applyCoupon")
+    .put(protect.auth, protect.allowedTo("user"), applyCouponToCart);
 
-router.route('/:productId')
-    .put(auth, updateCartProductQuantity)
-    .delete(auth, deleteProductFromCart);
+router
+    .route("/:productId")
+    .put(protect.auth, protect.allowedTo("user"), updateCartProductQuantity)
+    .delete(protect.auth, protect.allowedTo("user"), deleteProductFromCart);
 
-router.route('/')// clear all cart items
-    .delete(auth, clearLoggedUserCart);
+router
+    .route("/") // clear all cart items
+    .delete(protect.auth, protect.allowedTo("user"), clearLoggedUserCart);
 
 module.exports = router;

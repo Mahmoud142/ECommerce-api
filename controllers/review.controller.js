@@ -32,8 +32,8 @@ exports.createReview = asyncWrapper(async (req, res, next) => {
 //@route GET /api/reviews
 //@access public
 exports.getReviews = asyncWrapper(async (req, res, next) => {
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
+    const page = (req.query.page && req.query.page !== 'undefined') ? parseInt(req.query.page, 10) : 1;
+    const limit = (req.query.limit && req.query.limit !== 'undefined') ? parseInt(req.query.limit, 10) : 10;
     const skip = (page - 1) * limit;
     const reviews = await Review.find().skip(skip).limit(limit);
     res.status(200).json({
