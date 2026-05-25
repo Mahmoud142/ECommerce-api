@@ -38,7 +38,7 @@ exports.auth = asyncWrapper(async (req, res, next) => {
 exports.allowedTo = (...roles) => {
     return asyncWrapper(async (req, res, next) => {
         if (!roles.includes(req.user.role)) {
-            res.status(403).json({
+            return res.status(403).json({
                 status: FAIL,
                 message: `Role ${req.user.role} is not allowed to access this route`
             });
