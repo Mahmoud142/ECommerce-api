@@ -11,13 +11,15 @@ const { createSubcategoryValidator,
     updateSubCategoryValidator,
     deleteSubCategoryValidator } = require('../utils/validators/subcategory.validator');
 
+const protect = require('../middlewares/protect.middleware');
+
 router.route('/')
-    .post(createSubcategoryValidator, createSubCategory)
+    .post(protect.auth, protect.allowedTo('admin', 'manager'), createSubcategoryValidator, createSubCategory)
     .get(getAllSubCategories);
 
 router.route('/:id')
     .get(getSubCategoryValidator, getSubCategory)
-    .put(updateSubCategoryValidator, updateSubCategory)
-    .delete(deleteSubCategoryValidator, deleteSubCategory);
+    .put(protect.auth, protect.allowedTo('admin', 'manager'), updateSubCategoryValidator, updateSubCategory)
+    .delete(protect.auth, protect.allowedTo('admin'), deleteSubCategoryValidator, deleteSubCategory);
 
 module.exports = router;
