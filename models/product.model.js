@@ -8,7 +8,6 @@ const productSchema = new mongoose.Schema(
             trim: true,
             required: [true, 'Product title is required'],
             minlength: [3, 'Product title must be at least 3 characters long'],
-            maxlength: [100, 'Product title must not exceed 100 characters long'],
             // Remove unique: true to avoid duplicate key errors if index still exists
         },
         slug: {
@@ -19,7 +18,6 @@ const productSchema = new mongoose.Schema(
         description: {
             type: String,
             required: [true, 'Product description is required'],
-            maxlength: [1000, 'Product description must not exceed 1000 characters']
         },
         quantity: {
             type: Number,
