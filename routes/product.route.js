@@ -18,13 +18,15 @@ const {
     updateProductValidator,
     deleteProductValidator } = require('../utils/validators/product.validator');
 
+const protect = require('../middlewares/protect.middleware');
+
 router.route('/')
-    .post(uploadProductImages, resizeProductImages, createProductValidator, createProduct)
+    .post(protect.auth, protect.allowedTo('admin', 'manager'), uploadProductImages, resizeProductImages, createProductValidator, createProduct)
     .get(getAllProducts);
 
 router.route('/:id')
     .get(getProductValidator, getProductById)
-    .put(updateProductValidator, updateProduct)
-    .delete(deleteProductValidator, deleteProduct);
+    .put(protect.auth, protect.allowedTo('admin', 'manager'), updateProductValidator, updateProduct)
+    .delete(protect.auth, protect.allowedTo('admin'), deleteProductValidator, deleteProduct);
 
 module.exports = router;
