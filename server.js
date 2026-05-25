@@ -3,12 +3,7 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const app = express();
-app.use(
-    cors({
-        origin: ["https://shopplywebapp.vercel.app", "http://localhost:3000"],
-        credentials: true,
-    }),
-);
+app.use(cors("*"));
 const PORT = process.env.PORT || 4000;
 const morgan = require("morgan");
 
