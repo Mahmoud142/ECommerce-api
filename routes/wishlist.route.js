@@ -11,10 +11,10 @@ const {
 const protect = require('../middlewares/protect.middleware');
 
 router.route('/')
-    .get(protect.auth, getWishlist)
-    .post(protect.auth, addProductToWishlist);
+    .get(protect.auth, protect.allowedTo('user', 'admin', 'manager'), getWishlist)
+    .post(protect.auth, protect.allowedTo('user', 'admin', 'manager'), addProductToWishlist);
 
 router.route('/:productId')
-    .delete(protect.auth, DeleteProductFromWishlist);
+    .delete(protect.auth, protect.allowedTo('user', 'admin', 'manager'), DeleteProductFromWishlist);
 
 module.exports = router;
