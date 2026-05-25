@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  ecommerce-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce_app
+    restart: always
+    ports:
+      - "4000:3000"
+    env_file:
+      - .env
