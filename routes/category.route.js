@@ -18,11 +18,13 @@ const {
     updateCategoryValidator
 } = require('../utils/validators/category.validator');
 
+const protect = require('../middlewares/protect.middleware');
+
 router.route('/')
-    .post(uploadSingleImage, resizeImage, createCategoryValidator, createCategory)
+    .post(protect.auth, protect.allowedTo('admin', 'manager'), uploadSingleImage, resizeImage, createCategoryValidator, createCategory)
     .get(getCategories);
 router.route('/:id')
     .get(getCategoryValidator, getCategoryById)
-    .put(uploadSingleImage, resizeImage, updateCategoryValidator, updateCategory)
-    .delete(deleteCategoryValidator, deleteCategory);
+    .put(protect.auth, protect.allowedTo('admin', 'manager'), uploadSingleImage, resizeImage, updateCategoryValidator, updateCategory)
+    .delete(protect.auth, protect.allowedTo('admin'), deleteCategoryValidator, deleteCategory);
 module.exports = router;
